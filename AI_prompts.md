@@ -80,9 +80,11 @@ Show me the git status output and the list of files in the commit.
 
 ## Problem 1: Vibe coder prompts
 
-**Prompt:**
+**Prompt (condensed summary of the full request I sent):**
 
 > Create AI_prompts.md in the Homework 5 root as a log of the prompts I type to you, one section per problem, and keep it updated as I work. Include the setup prompts, a section for Problem 1, a blank template for future problems, and a rule in CLAUDE.md to keep the log updated.
+
+The full request also included the exact text of the three setup prompts above, which are logged verbatim in the Setup section.
 
 **Follow-up (if needed):** None needed.
 
