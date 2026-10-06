@@ -42,3 +42,6 @@ Three pieces that talk to each other:
 - Keep the API key in `.env` (gitignored), with a `.env.example` showing variable names only.
 - Create a Python virtual environment inside this homework folder (and any new lecture/homework/final-project folder).
 - Any images must be built in HTML, not generated with an image model.
+
+## Prompt log
+- At the end of each problem, append a section to AI_prompts.md with the problem number and title, the prompt(s) I typed, and a follow-up prompt if I needed one. Only log text I give you verbatim. Never invent or paraphrase my prompts. If I haven't given you the prompt text, ask me for it.

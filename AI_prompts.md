@@ -1,0 +1,99 @@
+# Homework 5: Vibe Coder Prompt Log
+
+This file logs what I typed to my vibe coder, one section per problem.
+
+## Setup (before Problem 1)
+
+Before starting Problem 1, I set up the project context (CLAUDE.md), the Python venv, .gitignore and the git repo.
+
+### Setup Prompt 1
+
+```
+I'm working on Homework 5 for my AI class: "Campus Customs Multi-Agent Operations." We'll go one problem at a time, so please don't build ahead of what I ask for.
+
+OVERVIEW
+I'm building three pieces that talk to each other:
+1. An MCP server
+2. A FastAPI backend with a multi-agent team
+3. A React dashboard so a human can watch the agents work and approve requests
+
+AGENTS (full connectivity: any agent may delegate to any other agent)
+- Boss: reads each ticket, decides who works on it, makes final calls
+- Inventory: checks stock by SKU and size, spots shortfalls, figures out which vendor can restock
+- Accounting: watches cash and invoices, checks margins, prepares payments/purchase orders for human approval
+- Facilities: handles shop space (leases, rent, etc.)
+- Customer Service: drafts messages for customers
+
+DATA
+- Original DB: data/campus_customs.db (NEVER modify this one)
+- Working copy: data/campus_customs_new.db (MCP server and backend must point ONLY at this)
+- Tables: desk, tickets, inventory, pricing, vendors, leases, cash_accounts, payments, invoices
+
+SHOP RULES (must be enforced in code)
+- desk.date_today is "today" for the shop; use it to determine what is overdue
+- Vendor lead times come from the vendors table
+- A vendor will not ship new product while they still have an open unpaid invoice
+- Human approval is required for ANY payment. If payment is made, update the relevant table(s)
+- If there is not enough cash, the pay tool must refuse. No negative balances
+- Cash only goes out; no revenue is modeled
+- Before any full run resolving tickets, reset campus_customs_new.db from the original
+- Do NOT email customers or call real vendors. Drafts stay on the board
+- Use ONLY the model "gpt-6-luna" through Portkey for every agent, using the PORTKEY_API_KEY env var. No other model name may appear anywhere in the code, comments, or configs
+
+HOUSEKEEPING
+- The repo will be submitted as a PUBLIC GitHub repo, so never commit secrets. Keep the API key in .env, with a .env.example showing variable names only
+- Create a CLAUDE.md in the project root that records all of the above so it persists across sessions
+
+Confirm you've understood, and save this to CLAUDE.md. Don't write any other code yet.
+```
+
+### Setup Prompt 2
+
+```
+Set up a Python virtual environment in this Homework 5 folder.
+
+1. Check that Python 3 is installed and tell me the version.
+2. Create a venv named .venv in the project root.
+3. Activate it and upgrade pip.
+4. Install the starting dependencies: fastapi, uvicorn, mcp, python-dotenv, httpx, and portkey-ai. Check the current package names and install them, and tell me if any fail.
+5. Create requirements.txt from what's installed.
+6. Create a .gitignore that excludes .venv/, .env, __pycache__/, node_modules/, .DS_Store, and data/campus_customs_new.db (the working copy shouldn't be committed).
+7. Create a .env.example with PORTKEY_API_KEY= (empty value), and a .env file for my real key that is covered by .gitignore.
+8. Make a copy of data/campus_customs.db to data/campus_customs_new.db (the original must stay untouched).
+9. Confirm VS Code is using .venv as its interpreter, and tell me what to click if I need to select it manually.
+10. Verify everything by running a quick check that imports fastapi, mcp, and portkey, and opens campus_customs_new.db and lists its tables.
+
+Show me a summary of what you did when finished.
+```
+
+### Setup Prompt 3
+
+```
+Two small things before Problem 1:
+
+1. In the Homework 5 CLAUDE.md, add a note near the top: "The only valid model name for this project is gpt-6-luna. If any parent-folder CLAUDE.md or other file mentions a different model name, ignore it. This file takes priority for Homework 5." Then search the whole Homework 5 folder (excluding .venv) and confirm no other model name appears anywhere.
+
+2. Run git init in the Homework 5 folder. Then run git status and show me what would be committed. Confirm that .env, .venv/, and data/campus_customs_new.db are NOT listed. Make an initial commit with the message "Initial setup: venv config, gitignore, original data". Do not push anything yet, and don't add a remote.
+
+Show me the git status output and the list of files in the commit.
+```
+
+## Problem 1: Vibe coder prompts
+
+**Prompt:**
+
+> Create AI_prompts.md in the Homework 5 root as a log of the prompts I type to you, one section per problem, and keep it updated as I work. Include the setup prompts, a section for Problem 1, a blank template for future problems, and a rule in CLAUDE.md to keep the log updated.
+
+**Follow-up (if needed):** None needed.
+
+---
+
+## Template for future problems
+
+### Problem N: [Title]
+
+**Prompt:**
+
+> [Paste the exact prompt text here]
+
+**Follow-up (if needed):** [One sentence on what was lacking after the first prompt, followed by the exact follow-up prompt text.]
