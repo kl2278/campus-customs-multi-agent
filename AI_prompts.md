@@ -88,6 +88,26 @@ The full request also included the exact text of the three setup prompts above, 
 
 **Follow-up (if needed):** None needed.
 
+## Problem 2: Study the Campus Customs database
+
+**Prompt:**
+
+```
+Problem 2 of my homework is to study the Campus Customs database and start a harness file.
+
+1. Open data/campus_customs.db in READ-ONLY mode (for example sqlite3 with the URI "file:data/campus_customs.db?mode=ro"). Do not write to the original. Go through every table and list every field with its type, plus any primary keys and foreign keys, and the row count.
+
+2. Copy data/campus_customs.db to data/campus_customs_new.db, overwriting the existing working copy. Then confirm the two files are byte-identical with a checksum, and confirm the original's checksum is the same as before you started.
+
+3. Study the 3 open tickets in the tickets table. Show me each ticket in full, and trace how it links to other tables (SKUs, sizes, vendors, invoices, leases, cash accounts, pricing, and so on). Tell me what each ticket will likely require from the agents, including which shop rules apply (overdue dates against desk.date_today, vendor lead times, open unpaid invoices blocking shipment, human approval for payments, cash limits).
+
+4. Create output/harness.md. Start it with a short title and one-line purpose. Add a section "Database tables" with one subsection per table (desk, tickets, inventory, pricing, vendors, leases, cash_accounts, payments, invoices). Each subsection lists the fields (name, type, and a few words on what it holds) and then ONE short line on why that table matters for the agents. Add a second section "How the open tickets link to other tables" with a short summary of what you found in step 3. Don't put customer personal details in the file. Leave a clear spot at the bottom where later problems will add more sections.
+
+5. Don't write any application code, don't change the schema or any data, and don't build ahead of this problem.
+```
+
+**Follow-up (if needed):** None needed.
+
 ---
 
 ## Template for future problems
