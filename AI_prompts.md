@@ -467,6 +467,54 @@ Stage 2 of Problem 9: all 3 tickets are resolved on the board and I've made all 
 8. Checks before committing. Search the repo (excluding .venv and node_modules) for secrets by pattern only (key-like strings, bearer tokens, "x-portkey-api-key" with a value) and don't read values from .env. Search all files to be committed for any requester name or approver name, without printing the names, and tell me the result. Confirm gpt-6-luna is the only model name in any file to be committed, apart from the quoted gateway deployment name in AI_prompts.md; report anything else instead of editing it. Confirm the original database checksum still starts 23686a90 and that .env, node_modules, the working database and output/audit_trail.json are not staged. Tell me the total size of output/screenshots/.
 ```
 
+## Problem 10: Reflection
+
+**Prompt:**
+
+```
+Problem 10 of my homework is the Reflection tab in output/desk_tickets.html. Edit ONLY the Reflection tab (replace the "Coming later" note) plus the log and commit steps below. Don't change the Expected sections, Actual sections, Ticket facts boxes or the Cash tab. Don't run any agents or tickets, don't call any POST route, don't touch either database, and don't edit code, prompts or audit_trail.json. Never write a customer name or approver name or initials; say "a human approver".
+
+1. Format. Keep the page self-contained with no external links. Inside the Reflection tab use five headed sections, in this order: "1. How I'd grade the agents, ticket by ticket", "2. Actual vs Expected, ticket by ticket", "3. What would have been simpler as one agent", "4. Three new problems this team could solve", "5. Three new problems it couldn't solve, and what I'd build". Write in first person, plain and conversational, detailed and specific. Include one small table in section 2 (ticket, what matched, what differed). Keep it readable on a narrow window and when printed. Refer to the ticket tabs and the Cash tab by name as evidence.
+
+2. Verify first. Before writing, check every number below against output/resolved_tickets.json, output/audit_trail_redacted.json, the Actual sections and the Cash tab (and the working database read-only if needed). If any figure is wrong, use the correct one and tell me which. Don't add facts I haven't given you without checking them in those files.
+
+3. Content to use, in my words (you may fix grammar and structure):
+
+SECTION 1, grades.
+- Ticket 101: B. It got the money right and the order right: Boss called Inventory first, Inventory found 0 tee S in stock and picked vendor 1 by its apparel-reprint specialty, Accounting queued the $840 for invoice 501, and nothing moved until I approved. After my approval the second run created a purchase order for 1 tee ($8, arriving 2026-09-05, no cash moved). Why not an A: the first attempt crashed on a gateway error before any tokens were spent, the Boss re-delegated to Accounting just to confirm things, and customer draft 2 mentioned a pending order and an estimated date, which broke the Customer Service rule. Two drafts also disagreed with each other.
+- Ticket 102: A. One run, Boss to Facilities to Accounting, rent queued at exactly the lease's $2,400, I approved, cash went down by $2,400 and next_due moved from 2026-09-02 to 2026-10-02. It used 11 model requests and no limit was hit.
+- Ticket 103: D+. The price decision itself was fine: $52 per hoodie, which is $30 above the $22 cost, $600 margin on 20 (57.69%). But it took three runs. In runs 1 and 2 the Boss deferred the discount to a human because its prompt told it discounts were a human judgment, and Inventory created two $264 purchase orders (PO 2 and PO 3) that I rejected because cash was $160. Inventory recreated the order after my first rejection because nothing in its prompt said a rejection is final. In run 3 the Boss resolved the ticket but never checked the 12-hoodie shortfall and never called Customer Service, so no customer reply exists.
+- My overall yardstick: did cash stay correct, did a human approve every payment, did agents follow their own rules, and did the ticket end with a complete answer for the customer. Cash and approvals were perfect; completeness was the weak spot.
+
+SECTION 2, Actual vs Expected (use my Expected sections on the ticket tabs).
+- 101: matched the first call (Inventory), the delegations (Inventory, Accounting, Customer Service, Facilities left out) and nearly all the tools. Differed on the end state: I expected a pending payment and no purchase order, but I approved the payment after run 1, so run 2 could create the purchase order, and the second draft gave an estimated date that I said it shouldn't.
+- 102: matched on everything: first call, delegations, the six tools I listed and the end state (rent queued, then approved, balance $160 after both payments). Small extra: all three agents called get_ticket and the Boss re-checked approvals and cash.
+- 103: matched the first call (Accounting). Differed on the rest: my plan had Inventory and Customer Service after Accounting, but run 3 used only the Boss and Accounting; I expected a draft reply and there is none; I expected no purchase order because invoice 501 would block vendor 1, but I had already paid 501 by running 101 first, so two purchase orders appeared and I rejected them. Lesson: ticket order changes what later tickets can do, and my plan treated tickets as independent.
+- Cash tab: starting $3,400, ticket 101 -$840, ticket 102 -$2,400, ticket 103 $0, ending $160, equal to cash_accounts.
+
+SECTION 3, simpler as one agent.
+- Ticket 102 is the clearest case: it needed get_lease_rent_status, get_cash_balance and queue_payment_for_approval. One agent could do it in a few tool calls instead of three agents each reading the ticket and passing summaries along.
+- Ticket 103's price check was one get_unit_pricing call, handed from Boss to Accounting and back.
+- On 101, the Boss re-delegating to Accounting only to confirm invoice 501 was paid cost roughly 19 to 20 model requests per run (about 46,000 input tokens); a single agent with the same tools wouldn't have needed the handoffs.
+- What the team does better: least privilege. Only Accounting can queue and execute payments and Customer Service has no payment or purchase tools. A single agent would need every tool at once. But the real safety comes from code, not agents: the human approve route, the cash check and the vendor-ship rule. So I'd use one agent plus those code guards for simple tickets, and keep separate agents only where the roles need different permissions or prompts.
+
+SECTION 4, three problems the team could solve with the current tools.
+- A second rent notice or another lease coming due: Facilities uses get_lease_rent_status, Accounting uses get_cash_balance and queue_payment_for_approval, a human approves. Ticket 102 is the proof.
+- Another customer order that's short on stock for an apparel item: check_stock, list_vendors, get_vendor_ship_status, create_purchase_order (pending approval), plus a customer draft. Ticket 101 is the proof (as long as the vendor has no open invoice).
+- Another vendor invoice going overdue and blocking shipments: list_open_invoices, get_vendor_ship_status, then queue the payment for approval, checked against cash. Invoice 501 on ticket 101 is the proof.
+
+SECTION 5, three problems it couldn't solve, and what I'd build.
+- Receiving stock. My team can create and get approval for a purchase order, but nothing marks it as arrived or raises inventory. Tee S stays at 0 even after PO 1 was approved. I'd add a receive_purchase_order tool that updates inventory and a Receiving role (or give Inventory this tool with a human check).
+- Planning cash across pending commitments. Approving a purchase order doesn't check cash, which is why I had to reject two $264 orders by hand while cash was $160. I'd add a forecast_cash tool that subtracts pending purchase orders and upcoming rent from the balance, and a Treasury or Planner agent that tells the Boss what's affordable before anything is queued.
+- Talking to vendors and customers for real, and bringing money in. Drafts stay on the board and no revenue is modeled, so the team can't negotiate a payment plan with vendor 1 while invoice 501 is open, send the customer's reply, or record a sale from the $52 hoodie price. I'd add a send_message tool with mandatory human review, a record_sale and receivables tool, and a Sales or Outreach agent, with the same approval gate used for payments.
+
+4. Style. Expand each bullet into a few natural sentences. Don't copy the bullets as bullets everywhere; use short paragraphs, with lists only where they help. Don't add model names, personal names or any claim the evidence files don't support. If something I wrote doesn't match the evidence, tell me instead of silently changing it.
+
+5. After writing, run git diff on output/desk_tickets.html and confirm the only change is inside the Reflection tab. Confirm the HTML still has no external links, no customer names, no approver names or initials and no model names. Confirm the original database checksum still starts 23686a90 and that .env, node_modules, the working database and output/audit_trail.json are not staged.
+```
+
+**Follow-up (if needed):** None needed.
+
 ---
 
 ## Template for future problems
