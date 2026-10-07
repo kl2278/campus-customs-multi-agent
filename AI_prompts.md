@@ -167,6 +167,40 @@ Problem 4 of my homework is to add my MCP server to this project so you (my vibe
 
 **Note:** The test prompts for each tool follow after I restart Claude Code and approve the server.
 
+### Problem 4 test prompts
+
+**Test prompt 1 (check_stock):**
+
+```
+Use the campus-customs MCP tool check_stock to look up the white tee in size S (CC-TEE-WHITE) for ticket 101. I need to know how many we have on hand and whether we're short if a customer wants 1. Call the MCP tool itself. Don't query the database or write code. Show me the tool name and the raw output.
+```
+
+**Test prompt 2 (get_lease_rent_status):**
+
+```
+Use the campus-customs MCP tool get_lease_rent_status for lease 1, which is the lease on ticket 102. Tell me the rent, the due date, today's shop date and whether it's overdue. Call the MCP tool itself. Don't query the database or write code. Show me the tool name and the raw output.
+```
+
+**Test prompt 3 (get_unit_pricing):**
+
+```
+Use the campus-customs MCP tool get_unit_pricing for the navy hoodie (CC-HOOD-NAVY) from ticket 103. I want the cost, the list price and the margin at list price. Call the MCP tool itself. Don't query the database or write code. Show me the tool name and the raw output.
+```
+
+**Smoke-test evidence prompt:**
+
+```
+Now save the smoke-test evidence for Problem 4.
+
+1. Create output/mcp_smoke.json with one entry per tool for the three tests I just ran in this session. Each entry must have "prompt" (the exact prompt I typed), "tool" (the exact MCP tool name that was called, plus the server name), "arguments", and "output" (the raw output the MCP tool returned in this session, copied exactly, not re-run through Python or retyped from memory). Add a top-level "note" saying these calls went through the vibe coder's MCP connection. Make it valid JSON, with no model names.
+
+2. Verify against the database in read-only mode (data/campus_customs_new.db, mode=ro). Confirm every value in each output matches: qty and location for the tee, rent, due date and today's date for lease 1, and cost and list price for the hoodie. Show me a comparison table. If anything doesn't match, tell me and don't edit the outputs.
+
+3. Add a short "MCP smoke test" section to output/harness.md above the Later sections marker. It should say the 3 tools were tested through the vibe coder, point to output/mcp_smoke.json, and give one line per tool with the ticket and the verified values. Keep all existing content.
+```
+
+**Follow-up (if needed):** None needed.
+
 ---
 
 ## Template for future problems

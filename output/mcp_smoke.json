@@ -1,0 +1,26 @@
+{
+  "note": "These calls went through the vibe coder's MCP connection (the campus-customs server loaded from .mcp.json), not through direct Python calls. Outputs are the raw text the MCP tool returned in the session.",
+  "tests": [
+    {
+      "prompt": "Use the campus-customs MCP tool check_stock to look up the white tee in size S (CC-TEE-WHITE) for ticket 101. I need to know how many we have on hand and whether we're short if a customer wants 1. Call the MCP tool itself. Don't query the database or write code. Show me the tool name and the raw output.",
+      "tool": "mcp__campus-customs__check_stock",
+      "server": "campus-customs",
+      "arguments": {"sku": "CC-TEE-WHITE", "size": "S", "qty_needed": 1},
+      "output": "{\"found\":true,\"sku\":\"CC-TEE-WHITE\",\"size\":\"S\",\"name\":\"Classic Bulldog Tee\",\"qty_on_hand\":0,\"location\":\"Aisle B\",\"qty_needed\":1,\"shortfall\":1}"
+    },
+    {
+      "prompt": "Use the campus-customs MCP tool get_lease_rent_status for lease 1, which is the lease on ticket 102. Tell me the rent, the due date, today's shop date and whether it's overdue. Call the MCP tool itself. Don't query the database or write code. Show me the tool name and the raw output.",
+      "tool": "mcp__campus-customs__get_lease_rent_status",
+      "server": "campus-customs",
+      "arguments": {"lease_id": 1},
+      "output": "{\"found\":true,\"lease_id\":1,\"space_name\":\"Chapel Street shop\",\"landlord\":\"Elm City Properties\",\"monthly_rent\":2400,\"next_due\":\"2026-09-02\",\"date_today\":\"2026-08-31\",\"days_until_due\":2,\"is_overdue\":false}"
+    },
+    {
+      "prompt": "Use the campus-customs MCP tool get_unit_pricing for the navy hoodie (CC-HOOD-NAVY) from ticket 103. I want the cost, the list price and the margin at list price. Call the MCP tool itself. Don't query the database or write code. Show me the tool name and the raw output.",
+      "tool": "mcp__campus-customs__get_unit_pricing",
+      "server": "campus-customs",
+      "arguments": {"sku": "CC-HOOD-NAVY"},
+      "output": "{\"found\":true,\"sku\":\"CC-HOOD-NAVY\",\"unit_cost\":22,\"list_price\":58,\"margin_per_unit_at_list\":36,\"margin_percent_at_list\":62.07}"
+    }
+  ]
+}

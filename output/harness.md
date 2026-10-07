@@ -149,6 +149,14 @@ The MCP server (`mcp_server/server.py`) exposes three read-only tools over `data
 - **Unlocks:** ticket 103
 - **Why:** ticket 103 wants a bulk discount on 20 CC-HOOD-NAVY, and this tool gives cost $22.00 and list $58.00 (a $36.00 margin, 62.07%), so any proposed price can be tested against cost before the Boss decides.
 
+## MCP smoke test
+
+The 3 MCP tools were tested through the vibe coder's MCP connection (not direct Python calls), and each output was checked against `data/campus_customs_new.db` in read-only mode. The prompts, tool names, arguments and raw outputs are saved in `output/mcp_smoke.json`.
+
+- **check_stock (ticket 101):** CC-TEE-WHITE size S has 0 on hand in Aisle B, so a request for 1 is short by 1.
+- **get_lease_rent_status (ticket 102):** lease 1 rent is $2,400, due 2026-09-02, with shop today 2026-08-31, so 2 days until due and not overdue.
+- **get_unit_pricing (ticket 103):** CC-HOOD-NAVY costs $22.00 and lists at $58.00, a $36.00 margin (62.07%) at list.
+
 ---
 
 ## Later sections (added by later problems)
