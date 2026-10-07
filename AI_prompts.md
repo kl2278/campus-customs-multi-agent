@@ -415,6 +415,20 @@ Follow-up on Problem 9: the run on ticket 101 worked, but two problems showed up
 4. Stand-in test and checks. Rerun the stand-in agent tests (delegation, audit growth, ping-pong depth limit) and the API checks to confirm nothing broke. Confirm pip check is clean, mcp is still 1.30.0, the original database checksum still starts 23686a90, and gpt-6-luna is the only model name in repo files other than the quoted gateway deployment name in AI_prompts.md. Confirm .env, node_modules, the working database and the audit file are not staged.
 ```
 
+**Third follow-up (if needed):** The Customer Service draft from the second run on ticket 101 mentioned a pending purchase order and gave an estimated arrival date, so the prompt's rule against internal details and dates needed to be stricter.
+
+**Third follow-up prompt:**
+
+```
+Follow-up on Problem 9: the second run on ticket 101 produced customer draft 2, which mentioned a pending purchase order and gave September 5 as an estimated arrival date. The Customer Service prompt says not to include internal details or promise dates, so the wording needs to be stronger. Don't run any ticket and don't call POST /tickets/{id}/run, /approve, /reject or /reset. Don't change the limits, don't touch either database, and don't edit or delete output/audit_trail.json or the existing drafts.
+
+1. Read backend/prompts/customer_service.md and show me the passages that currently cover internal details, dates and drafts. Tell me why they may not have been strong enough.
+
+2. Edit only backend/prompts/customer_service.md, with the smallest change that works. Add this rule in the hard-rules area, in plain language: a customer message must never state or estimate an arrival, delivery or restock date, even hedged as an estimate, and must never mention purchase orders, approvals, payments, invoices, vendors, cash or any other internal detail. It may only say that the request has been received, that we are working on it, that we can't confirm timing yet, and that we will follow up when there is something firm. Also add: if a draft for this ticket already exists (check with list_customer_drafts), say so in the report and write the new draft so it doesn't contradict the earlier one. Keep every other part of the prompt as it is and keep it general, with no ticket-specific numbers, names or dates.
+
+3. Don't change any other prompt, code file or frontend file. Rerun the stand-in agent tests (delegation, audit growth, ping-pong depth limit) and confirm the Customer Service agent still builds, and confirm the prompt file loads. Make no live model calls. Confirm gpt-6-luna is still the only model name in the repo apart from the quoted gateway deployment name in AI_prompts.md, that the original database checksum still starts 23686a90, and that .env, node_modules, the working database and the audit file are not staged.
+```
+
 ---
 
 ## Template for future problems
