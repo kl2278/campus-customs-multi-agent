@@ -6,13 +6,13 @@ from datetime import date
 from pathlib import Path
 from typing import Any
 
-# mcp 2.x renamed FastMCP to MCPServer.
-from mcp.server.mcpserver import MCPServer
+# mcp 1.x ships FastMCP (pinned: mcp 2.x renamed it to MCPServer).
+from mcp.server.fastmcp import FastMCP
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DB_PATH = PROJECT_ROOT / "data" / "campus_customs_new.db"
 
-mcp = MCPServer("campus-customs")
+mcp = FastMCP("campus-customs")
 
 
 def _connect() -> sqlite3.Connection:

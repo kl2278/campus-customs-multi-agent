@@ -131,7 +131,21 @@ Problem 3 of my homework is to build the MCP server. We're only writing it in th
 6. Don't start or connect the server. A syntax and import check is fine. You may call the underlying functions once directly to confirm they return correct data from campus_customs_new.db, and show me those results. Don't build FastAPI, agents or the dashboard yet. Don't touch the database contents, and make sure no AI model name appears anywhere in the new files.
 ```
 
-**Follow-up (if needed):** None needed.
+**Follow-up (if needed):** The first prompt didn't say what to do if FastMCP was missing from the new mcp version, so the code used MCPServer instead of the FastMCP the assignment requires.
+
+**Follow-up prompt:**
+
+```
+Follow-up on Problem 3: the assignment says to build the MCP server "using FastMCP", but you used MCPServer because mcp 2.3.0 removed FastMCP. I'd like the code to use a class actually named FastMCP.
+
+1. Check which option installs cleanly alongside the other packages in .venv: (a) pin mcp to the latest 1.x release that still has mcp.server.fastmcp.FastMCP, or (b) use the standalone fastmcp package (from fastmcp import FastMCP). Pick the one that works, and tell me which you chose and why. If neither works, keep MCPServer and explain what failed.
+
+2. Switch mcp_server/server.py to FastMCP. Keep the same 3 tools, signatures, read-only DB access and DB_PATH constant. Don't change any tool logic.
+
+3. Re-run the same direct-call checks as before (tee S, hoodie M with 20, hat OS, lease 1, hoodie pricing at list and at 40) and confirm the results are identical.
+
+4. Update mcp_server/README.md and output/harness.md only where they mention MCPServer or the library. Regenerate requirements.txt. Confirm the model-name search of the files is still clean and both database checksums still start 23686a90.
+```
 
 ---
 
