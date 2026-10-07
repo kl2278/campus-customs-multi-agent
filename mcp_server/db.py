@@ -23,6 +23,20 @@ DB_PATH_ENV = "CAMPUS_CUSTOMS_DB_PATH"
 INVOICE_OPEN = "open"
 INVOICE_PAID = "paid"
 
+# Approval kinds (approvals.kind).
+KIND_INVOICE = "invoice"
+KIND_RENT = "rent"
+KIND_PURCHASE_ORDER = "purchase_order"
+
+# Purchase order lifecycle (purchase_orders.status).
+PO_PENDING = "pending_approval"
+PO_APPROVED = "approved"
+PO_REJECTED = "rejected"
+
+# Ticket status values (tickets.status).
+TICKET_OPEN = "open"
+TICKET_RESOLVED = "resolved"
+
 # Approval lifecycle.
 STATUS_PENDING = "pending"
 STATUS_APPROVED = "approved"
@@ -36,7 +50,7 @@ CREATE TABLE IF NOT EXISTS approvals (
     kind TEXT NOT NULL,
     ref_id INTEGER NOT NULL,
     amount REAL NOT NULL,
-    account TEXT NOT NULL,
+    account TEXT,
     ticket_id INTEGER,
     requested_by TEXT NOT NULL,
     reason TEXT,
@@ -61,6 +75,9 @@ CREATE TABLE IF NOT EXISTS purchase_orders (
     created_on TEXT NOT NULL,
     expected_arrival TEXT NOT NULL,
     status TEXT NOT NULL,
+    decided_by TEXT,
+    decided_on TEXT,
+    decision_note TEXT,
     FOREIGN KEY (vendor_id) REFERENCES vendors(id)
 );
 CREATE TABLE IF NOT EXISTS customer_drafts (

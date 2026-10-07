@@ -50,6 +50,12 @@ class AgentReport(BaseModel):
     open_questions: list[str] = Field(default_factory=list, description="Information that is missing.")
     escalate_to_human: bool = False
     escalation_reason: str | None = None
+    work_complete: bool = Field(
+        default=False,
+        description="Boss only. True when everything the agents can do on this ticket is finished and nothing "
+        "is blocked, failed or waiting on missing information or a human decision, even if human payment or "
+        "purchase-order approvals are still pending. False otherwise.",
+    )
     decision: str | None = Field(default=None, description="Boss only: the final call on the ticket.")
 
 
@@ -66,14 +72,15 @@ class AuditEntry(BaseModel):
 
     timestamp: str
     run_id: str
-    ticket_id: int
+    ticket_id: int | None = None
     agent: str
     depth: int
     step: int
-    kind: Literal["model_request", "tool_call", "tool_result", "delegation", "final_output", "error"]
+    kind: Literal["model_request", "tool_call", "tool_result", "delegation", "final_output", "error", "reset"]
     tool_name: str | None = None
     arguments: dict[str, Any] | None = None
     result_summary: str | None = None
+    message: str | None = None  # what the agent said (model text, or the final report)
     input_tokens: int | None = None
     output_tokens: int | None = None
 

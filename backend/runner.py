@@ -3,7 +3,7 @@
 from typing import Any
 
 from pydantic_ai import Agent
-from pydantic_ai.messages import RetryPromptPart, ToolCallPart, ToolReturnPart
+from pydantic_ai.messages import RetryPromptPart, TextPart, ToolCallPart, ToolReturnPart
 from pydantic_ai.settings import ModelSettings
 
 from backend.audit import scrub_arguments, summarize
@@ -11,6 +11,7 @@ from backend.config import MAX_OUTPUT_TOKENS, MAX_STEPS_PER_AGENT
 from backend.models import AgentDeps, AgentReport
 
 DELEGATE_TOOL = "delegate_to_agent"
+MESSAGE_LIMIT = 1_000  # characters of what an agent said that go into the audit trail
 OUTPUT_TOOL = "final_result"  # PydanticAI's default name for the structured-output tool
 
 
@@ -50,7 +51,13 @@ async def run_logged(agent: Agent[AgentDeps, AgentReport], prompt: str, deps: Ag
                         )
                 elif Agent.is_call_tools_node(node):
                     usage = node.model_response.usage
-                    log("model_request", input_tokens=usage.input_tokens, output_tokens=usage.output_tokens)
+                    said = " ".join(p.content for p in node.model_response.parts if isinstance(p, TextPart)).strip()
+                    log(
+                        "model_request",
+                        input_tokens=usage.input_tokens,
+                        output_tokens=usage.output_tokens,
+                        message=summarize(said, MESSAGE_LIMIT) if said else None,
+                    )
                     for part in node.model_response.parts:
                         if not isinstance(part, ToolCallPart) or part.tool_name == OUTPUT_TOOL:
                             continue
@@ -60,5 +67,6 @@ async def run_logged(agent: Agent[AgentDeps, AgentReport], prompt: str, deps: Ag
     except Exception as exc:
         log("error", result_summary=summarize(f"{type(exc).__name__}: {exc}"))
         raise
-    log("final_output", result_summary=summarize(report.model_dump()))
+    said = f"{report.summary} {('Decision: ' + report.decision) if report.decision else ''}".strip()
+    log("final_output", result_summary=summarize(report.model_dump()), message=summarize(said, MESSAGE_LIMIT))
     return report

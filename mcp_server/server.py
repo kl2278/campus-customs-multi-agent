@@ -14,17 +14,19 @@ from typing import Any
 # mcp 1.x ships FastMCP (pinned: mcp 2.x renamed it to MCPServer).
 from mcp.server.fastmcp import FastMCP
 
+from mcp_server.payments import PaymentRefused, execute_payment
 from mcp_server.db import (  # noqa: F401  (DB_PATH is the one config constant)
     DB_PATH,
     INVOICE_OPEN,
-    INVOICE_PAID,
+    KIND_INVOICE,
+    KIND_PURCHASE_ORDER,
+    KIND_RENT,
+    PO_PENDING,
     STATUS_APPROVED,
-    STATUS_EXECUTED,
     STATUS_PENDING,
-    NEW_TABLES_SQL,
+    TICKET_OPEN,
     WriteRefused,
     add_days,
-    add_one_month,
     connect_ro,
     connect_rw,
     shop_date,
@@ -158,11 +160,7 @@ def get_unit_pricing(sku: str, proposed_price: float | None = None) -> dict[str,
 # Shared helpers for the tools below
 # ---------------------------------------------------------------------------
 
-TICKET_OPEN = "open"  # tickets.status value for tickets still to be worked
 DRAFT_STATUS = "draft"
-PO_STATUS = "ordered"
-KIND_INVOICE = "invoice"
-KIND_RENT = "rent"
 
 
 def _no_date() -> dict[str, Any]:
@@ -508,9 +506,10 @@ def create_purchase_order(
     """Record a purchase order with a vendor (nothing is sent to the vendor).
 
     Refuses if the vendor has any open unpaid invoice, because it will not ship.
-    Otherwise records the order with the unit cost from the pricing table and an
-    expected arrival of desk.date_today plus the vendor's lead_days. Choose the
-    vendor by specialty (see list_vendors) and check get_vendor_ship_status first.
+    Otherwise saves the order with status pending_approval (a human must approve
+    it; it moves no cash), the unit cost from the pricing table and an expected
+    arrival of desk.date_today plus the vendor's lead_days. Choose the vendor by
+    specialty (see list_vendors) and check get_vendor_ship_status first.
     """
     if qty <= 0:
         return _refuse("qty must be a positive whole number.")
@@ -553,7 +552,14 @@ def create_purchase_order(
                 "INSERT INTO purchase_orders (vendor_id, sku, size, qty, unit_cost, total_cost, ticket_id, "
                 "created_by, created_on, expected_arrival, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                 (vendor_id, sku, size, qty, price["unit_cost"], total, ticket_id, created_by.strip(),
-                 today.isoformat(), expected, PO_STATUS),
+                 today.isoformat(), expected, PO_PENDING),
+            )
+            approval = conn.execute(
+                "INSERT INTO approvals (kind, ref_id, amount, account, ticket_id, requested_by, reason, "
+                "status, created_on) VALUES (?, ?, ?, NULL, ?, ?, ?, ?, ?)",
+                (KIND_PURCHASE_ORDER, cur.lastrowid, total, ticket_id, created_by.strip(),
+                 f"Purchase order: {qty} x {sku} size {size} from vendor {vendor_id}",
+                 STATUS_PENDING, today.isoformat()),
             )
             conn.execute("COMMIT")
         except Exception:
@@ -562,6 +568,8 @@ def create_purchase_order(
     return {
         "ok": True,
         "purchase_order_id": cur.lastrowid,
+        "approval_id": approval.lastrowid,
+        "status": PO_PENDING,
         "vendor_id": vendor_id,
         "sku": sku,
         "size": size,
@@ -570,7 +578,8 @@ def create_purchase_order(
         "total_cost": total,
         "expected_arrival": expected,
         "lead_days": vendor["lead_days"],
-        "message": "Purchase order recorded on the board. The vendor was not contacted.",
+        "message": "Purchase order saved as pending_approval; a human must approve it. "
+                   "It moves no cash and the vendor was not contacted.",
     }
 
 
@@ -628,95 +637,15 @@ def execute_approved_payment(approval_id: int) -> dict[str, Any]:
     with closing(conn):
         conn.execute("BEGIN IMMEDIATE")
         try:
-            today = shop_date(conn)
-            ap = conn.execute("SELECT * FROM approvals WHERE id = ?", (approval_id,)).fetchone()
-            if today is None:
-                conn.execute("ROLLBACK")
-                return _refuse("desk table has no date_today row.")
-            if ap is None:
-                conn.execute("ROLLBACK")
-                return _refuse(f"No approval with id={approval_id}.")
-            if ap["status"] != STATUS_APPROVED:
-                conn.execute("ROLLBACK")
-                return _refuse(f"Approval {approval_id} is {ap['status']}; only an approved payment can be executed.")
-            if not (ap["decided_by"] or "").strip():
-                conn.execute("ROLLBACK")
-                return _refuse(f"Approval {approval_id} has no recorded human approver.")
-            if ap["kind"] == KIND_INVOICE:
-                target = conn.execute("SELECT amount, status FROM invoices WHERE id = ?", (ap["ref_id"],)).fetchone()
-                if target is None or target["status"] != INVOICE_OPEN:
-                    conn.execute("ROLLBACK")
-                    return _refuse(f"Invoice {ap['ref_id']} is missing or no longer open.")
-                current_amount = target["amount"]
-            elif ap["kind"] == KIND_RENT:
-                target = conn.execute("SELECT monthly_rent, next_due FROM leases WHERE id = ?", (ap["ref_id"],)).fetchone()
-                if target is None:
-                    conn.execute("ROLLBACK")
-                    return _refuse(f"Lease {ap['ref_id']} not found.")
-                current_amount = target["monthly_rent"]
-            else:
-                conn.execute("ROLLBACK")
-                return _refuse(f"Unknown approval kind {ap['kind']!r}.")
-            if round(current_amount, 2) != round(ap["amount"], 2):
-                conn.execute("ROLLBACK")
-                return _refuse("The approved amount no longer matches the invoice or lease; queue a new approval.")
-            acct = conn.execute("SELECT balance FROM cash_accounts WHERE name = ?", (ap["account"],)).fetchone()
-            if acct is None:
-                conn.execute("ROLLBACK")
-                return _refuse(f"Cash account {ap['account']!r} not found.")
-            if acct["balance"] < ap["amount"]:
-                conn.execute("ROLLBACK")
-                return {
-                    "ok": False,
-                    "message": "Not enough cash. The payment was refused and no balance changed.",
-                    "cash_balance": acct["balance"],
-                    "amount": ap["amount"],
-                }
-            pay = conn.execute(
-                "INSERT INTO payments (kind, ref_id, amount, account, paid_at, approved_by) VALUES (?, ?, ?, ?, ?, ?)",
-                (ap["kind"], ap["ref_id"], ap["amount"], ap["account"], today.isoformat(), ap["decided_by"]),
-            )
-            debited = conn.execute(
-                "UPDATE cash_accounts SET balance = balance - ?, date = ? WHERE name = ? AND balance >= ?",
-                (ap["amount"], today.isoformat(), ap["account"], ap["amount"]),
-            )
-            if ap["kind"] == KIND_INVOICE:
-                settled = conn.execute(
-                    "UPDATE invoices SET status = ? WHERE id = ? AND status = ?",
-                    (INVOICE_PAID, ap["ref_id"], INVOICE_OPEN),
-                )
-                new_next_due = None
-            else:
-                new_next_due = add_one_month(date.fromisoformat(target["next_due"]))
-                settled = conn.execute(
-                    "UPDATE leases SET next_due = ? WHERE id = ?", (new_next_due, ap["ref_id"])
-                )
-            marked = conn.execute(
-                "UPDATE approvals SET status = ?, executed_on = ?, payment_id = ? WHERE id = ? AND status = ?",
-                (STATUS_EXECUTED, today.isoformat(), pay.lastrowid, approval_id, STATUS_APPROVED),
-            )
-            if debited.rowcount != 1 or settled.rowcount != 1 or marked.rowcount != 1:
-                conn.execute("ROLLBACK")
-                return _refuse("A concurrent change blocked the payment; nothing was changed.")
-            new_balance = conn.execute(
-                "SELECT balance FROM cash_accounts WHERE name = ?", (ap["account"],)
-            ).fetchone()["balance"]
+            result = execute_payment(conn, approval_id)
             conn.execute("COMMIT")
+        except PaymentRefused as exc:
+            conn.execute("ROLLBACK")
+            return exc.payload
         except Exception:
             conn.execute("ROLLBACK")
             raise
-    return {
-        "ok": True,
-        "approval_id": approval_id,
-        "payment_id": pay.lastrowid,
-        "kind": ap["kind"],
-        "ref_id": ap["ref_id"],
-        "amount": ap["amount"],
-        "approved_by": ap["decided_by"],
-        "new_cash_balance": new_balance,
-        "new_next_due": new_next_due,
-        "message": "Payment executed once and recorded.",
-    }
+    return result
 
 
 if __name__ == "__main__":

@@ -27,10 +27,10 @@ Read tools:
 
 Write tools (these change the working copy only):
 - `queue_payment_for_approval(kind, ref_id, requested_by, ...)`: queues an invoice or rent payment for human approval; moves no cash.
-- `create_purchase_order(vendor_id, sku, size, qty, created_by, ...)`: records an order; refuses if the vendor has an open unpaid invoice; expected arrival is the shop date plus the vendor's lead days.
+- `create_purchase_order(vendor_id, sku, size, qty, created_by, ...)`: saves an order with status `pending_approval` (a human approves it through the backend); refuses if the vendor has an open unpaid invoice; expected arrival is the shop date plus the vendor's lead days.
 - `save_customer_draft(ticket_id, subject, body, created_by)`: saves a draft on the board; nothing is sent.
 - `execute_approved_payment(approval_id)`: pays a human-approved approval once, in a single transaction; refuses without approval, on a repeat, or if cash is short.
 
-Approving or rejecting a payment is not a tool. Humans do it through `approvals.py`, which a later dashboard will call.
+Approving or rejecting is not a tool. Humans do it through the backend routes `POST /approvals/{id}/approve` and `/reject`, which call `approvals.py`. Other non-tool modules: `payments.py` (the single payment transaction shared by the tool and the approve route), `board.py` (tickets, cash, marking a ticket resolved) and `reset.py` (restore the working copy from the original).
 
 More tools may be added in later problems.

@@ -132,7 +132,7 @@ Today on the desk is 2026-08-31. The checking account holds $3,400.00 and the pa
 
 ## MCP tools
 
-The MCP server (`mcp_server/server.py`) exposes 19 tools over `data/campus_customs_new.db`. Read tools use a read-only connection. Write tools use a read-write connection that refuses the original database, and they only write to the working copy. Three small tables (`approvals`, `purchase_orders`, `customer_drafts`) are created lazily in the working copy, so a reset from the original wipes them. Approving a payment is not a tool: a human does it through `mcp_server/approvals.py`.
+The MCP server (`mcp_server/server.py`) exposes 19 tools over `data/campus_customs_new.db`. Read tools use a read-only connection. Write tools use a read-write connection that refuses the original database, and they only write to the working copy. Three small tables (`approvals`, `purchase_orders`, `customer_drafts`) are created lazily in the working copy, so a reset from the original wipes them. Approving is not a tool: a human does it through the backend route `POST /approvals/{id}/approve` (logic in `mcp_server/approvals.py`), the only approval path.
 
 | Tool | Tables | R/W | Tickets it helps |
 |---|---|---|---|
@@ -152,7 +152,7 @@ The MCP server (`mcp_server/server.py`) exposes 19 tools over `data/campus_custo
 | list_purchase_orders | purchase_orders | Read | 101, 103 (avoid duplicate orders) |
 | list_customer_drafts | customer_drafts | Read | 101, 103 (drafts on the board) |
 | queue_payment_for_approval | approvals (reads invoices, leases, cash_accounts) | Write | 101 (invoice 501, $840), 102 (rent $2,400) |
-| create_purchase_order | purchase_orders (reads vendors, invoices, inventory, pricing, desk) | Write | 101 (tee S), 103 (hoodie M); refuses while vendor 1 has an open invoice |
+| create_purchase_order | purchase_orders, approvals (reads vendors, invoices, inventory, pricing, desk) | Write | 101 (tee S), 103 (hoodie M); saves the order as `pending_approval` (a human approves it via the approve route) and refuses while vendor 1 has an open invoice |
 | save_customer_draft | customer_drafts (reads tickets, desk) | Write | 101, 103 (customer replies; nothing is sent) |
 | execute_approved_payment | payments, cash_accounts, invoices or leases, approvals | Write | 101 (pay 501), 102 (pay rent; next_due moves one month) |
 
@@ -201,7 +201,7 @@ Five PydanticAI agents live under `backend/agents/`, one file each, with prompts
 
 Guardrails a real business would want when agents touch real customers and real money:
 
-- **Human approval and spending caps:** no payment moves without a named human's approval, and the pay tool refuses anything above the cash balance. A real system would add a per-payment and per-day cap.
+- **Human approval and spending caps:** no payment moves without a named human's approval, and the pay tool refuses anything above the cash balance. The approve route (`POST /approvals/{id}/approve`) is the only approval path: there is no approve tool, no agent allowlist reaches it, and the approver cannot be the agent that requested the payment. Purchase orders also wait as `pending_approval` until a human approves them. A real system would add a per-payment and per-day cap.
 - **Least-privilege tools:** each agent sees only its allowlist; only Accounting can execute payments, and Customer Service has no payment or purchase tools.
 - **No external messages without review:** drafts stay on the board and nothing is emailed; vendors and customers are never contacted.
 - **Redacting personal data:** audit summaries redact requester names and secret-looking fields; harness notes carry no customer details.
@@ -216,6 +216,19 @@ Limits that keep token use in check:
 - A maximum delegation depth and a maximum number of delegations per ticket.
 - A short step limit per agent run, and a cap on output tokens per response.
 - Short structured reports, and one model only (`gpt-6-luna`).
+
+## Backend routes
+
+Start from the `backend/` folder with the venv active: `uvicorn main:app --reload --port 8000`. It works from any directory (the project root is put on the path and the MCP server is launched from the project root). CORS allows only the local React dev origins listed in `backend/config.py`.
+
+- `GET /tickets`: every ticket row, status open or resolved, with the number of pending approvals per ticket.
+- `GET /cash`: the checking balance (account, balance, date) and the shop date.
+- `GET /events`: recent audit-trail events (read only); filters `ticket_id`, `run_id`, `since`, `limit` (default 100, max 500); only events after the last reset unless `all=true`.
+- `GET /approvals`: payment approvals and purchase orders, pending and past; optional `status` filter.
+- `POST /approvals/{id}/approve`: a human (`decided_by` required) approves; a payment is executed in the same transaction (409 if it cannot be, and it stays pending); a purchase order only changes status.
+- `POST /approvals/{id}/reject`: a human rejects an approval or purchase order; no cash moves.
+- `POST /reset`: copy the original database over the working copy atomically (wipes the added tables) and append a reset marker to the audit trail; 409 during a run.
+- `POST /tickets/{id}/run`: run the Boss on one open ticket (one run at a time, with a timeout); the ticket becomes resolved only if the Boss's report has `work_complete` true and status is not failed or blocked.
 
 ---
 

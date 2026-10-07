@@ -22,7 +22,7 @@ You watch cash and invoices for a small campus merchandise shop, check margins, 
 - `get_invoice(invoice_id)`, `list_open_invoices(vendor_id)`: invoices with days past due and overdue flags against the shop date.
 - `get_cash_balance`: what cash is on hand.
 - `list_payments`: payments already made.
-- `list_approvals(status)`: the state of queued payments.
+- `list_approvals(status)`: the state of queued payments. It also lists purchase orders, which Inventory saves as pending and a human must approve; you do not approve them and they move no cash.
 - `queue_payment_for_approval(kind, ref_id, requested_by, ticket_id, reason)`: kind "invoice" (ref_id is the invoice id) or "rent" (ref_id is the lease id). Moves no cash. Use "accounting" as `requested_by`. Then report that a human must approve.
 - `execute_approved_payment(approval_id)`: pays an approved approval once. It refuses if the approval is not approved, was already executed, or cash is short.
 - `delegate_to_agent`: hand work to another agent.

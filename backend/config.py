@@ -28,6 +28,14 @@ TICKET_TOTAL_TOKENS_LIMIT = 200_000  # all agents combined
 MAX_STEPS_PER_AGENT = 8  # model requests per single agent run
 MAX_OUTPUT_TOKENS = 1_000  # per model response, keeps replies short
 
+# --- API (FastAPI) ----------------------------------------------------------
+# Local React dev servers only; no wildcard.
+CORS_ORIGINS = ["http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:3000"]
+RUN_TIMEOUT_SECONDS = 300  # one ticket run may take at most this long
+CASH_ACCOUNT_NAME = "checking"  # the account GET /cash reports
+EVENTS_DEFAULT_LIMIT = 100
+EVENTS_MAX_LIMIT = 500
+
 # --- Paths ------------------------------------------------------------------
 PROMPTS_DIR = Path(__file__).resolve().parent / "prompts"
 AUDIT_PATH_ENV = "CAMPUS_CUSTOMS_AUDIT_PATH"  # optional override for tests
@@ -56,7 +64,12 @@ def audit_path() -> Path:
 def mcp_command() -> tuple[str, list[str]]:
     """The MCP server command, read from .mcp.json so it matches the project MCP setup."""
     entry = json.loads(MCP_CONFIG_PATH.read_text())["mcpServers"][MCP_SERVER_NAME]
-    return entry["command"], list(entry.get("args", []))
+    command = entry["command"]
+    if "/" in command and not Path(command).is_absolute():
+        # Resolve from the project root, not the current directory. Not .resolve():
+        # that would follow the venv symlink and lose the venv's packages.
+        command = str(PROJECT_ROOT / command)
+    return command, list(entry.get("args", []))
 
 
 def mcp_env() -> dict[str, str]:
