@@ -225,7 +225,19 @@ Problem 5 of my homework is to build the agent team and grow the MCP tools. We a
 8. Verification and scope. Verify without spending real tokens and without touching the real working database: use a scratch folder outside the repo (for example in /tmp), not committed, with a temporary copy of the database and a temporary audit path. Show me: the server lists every tool and the 3 original tools return the same results as before; execute_approved_payment refuses with no approval, refuses after the approval is rejected, refuses when cash is too low, and succeeds exactly once on an approved payment, with the payments row, cash balance and invoice/lease updated and the same call refused the second time; create_purchase_order refuses for a vendor with an open invoice; an agent run with a stand-in model (PydanticAI's function-based test model) can delegate between two agents and writes steps to a temp audit file, and running it twice makes the file grow instead of resetting. If PORTKEY_API_KEY is set (check only that it is set, never show it), make at most one tiny live call to confirm the Portkey connection works and tell me the result; if it's not set or fails, skip it and tell me what is missing. Do not run the real tickets. Don't build FastAPI endpoints or the dashboard. Don't modify data/campus_customs.db and don't change data/campus_customs_new.db contents beyond the lazily created new tables if the server is started against it. Confirm both database checksums still start 23686a90 for the original, and that no model name other than gpt-6-luna appears in any repo file (outside .venv).
 ```
 
-**Follow-up (if needed):** None needed.
+**Follow-up (if needed):** The first prompt allowed one live Portkey call, but the reply wasn't captured, so the connection to gpt-6-luna was never actually shown to work.
+
+**Follow-up prompt:**
+
+```
+Follow-up on Problem 5: the one live Portkey call went through, but my print line crashed, so I never saw the reply, the model name or the token usage. I want proof the connection works with gpt-6-luna.
+
+1. You may make exactly ONE more tiny live call through the backend config (the same client and settings the agents use). Ask it to reply with the single word OK. Fix the print line (usage is a property, not a method). Show me the reply text, the model name taken from backend/config.py, and the input and output token counts. Never print the API key, headers or any env value. If it fails, show me the error message with any secret removed and tell me what is missing (for example PORTKEY_PROVIDER, PORTKEY_VIRTUAL_KEY or PORTKEY_CONFIG), and don't retry more than that one call.
+
+2. Check that AI_prompts.md has a "Problem 5: Build the agent team and grow the MCP tools" section with the Problem 5 prompt logged verbatim from "Problem 5 of my homework" through item 8. If it's missing or incomplete, tell me and add it. Don't paraphrase.
+
+3. In AI_prompts.md under Problem 5, replace "Follow-up (if needed): None needed." with: "Follow-up (if needed): The first prompt allowed one live Portkey call, but the reply wasn't captured, so the connection to gpt-6-luna was never actually shown to work." Then log this message verbatim as the follow-up prompt, from "Follow-up on Problem 5" through item 3 (leave out this item 4 and item 5).
+```
 
 ---
 
