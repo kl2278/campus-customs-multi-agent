@@ -399,6 +399,22 @@ Follow-up on Problem 9: the run on ticket 101 failed with a 500. The audit file 
 4. If the one call succeeds, also check that the real Boss agent builds without a model call: construct it and list its tools and output type, but don't run it. Run the agent tests you used earlier with the stand-in model (delegation between two agents, audit trail growth, and the ping-pong depth limit) to confirm nothing broke. Confirm that pip check is clean, mcp is still 1.30.0, and the original database checksum still starts 23686a90.
 ```
 
+**Second follow-up (if needed):** The first Problem 9 prompt didn't say names must be kept out of the audit file, and the real run showed a customer's name there, plus handoffs weren't showing on the dashboard because the real argument shape differed from my tests.
+
+**Second follow-up prompt:**
+
+```
+Follow-up on Problem 9: the run on ticket 101 worked, but two problems showed up. Don't run any ticket and don't call POST /tickets/{id}/run, /approve, /reject or /reset. Don't change the limits and don't touch either database.
+
+1. Customer names in the audit file. A customer's name appears in output/audit_trail.json inside delegation task text and customer draft bodies, and GET /events serves it. The repo will be public. Fix it at the source: redact personal names from free text before an event is written and before GET /events returns it. The names to redact must come from the tickets table (the requester column) read at write time, not hard-coded in the code. Replace them with a neutral label such as "[customer]", and also redact the greeting line of draft text. Don't hard-code any name. Also check tool arguments and result summaries, not just keys like requester. Add a short test with a made-up name on a scratch database and audit file in /tmp, showing the name is gone from the file and from GET /events output.
+
+2. Existing entries. Do NOT edit or delete output/audit_trail.json, because it is append-only. Count how many existing entries contain a requester name (don't print the name) and tell me. Then propose the safest way to deal with them, for example keeping the file out of git until a clean reset, or redacting at read time only, and wait for my decision. Don't apply it.
+
+3. Dashboard handoffs. In frontend/src/derive.ts, make parseHandoff accept both argument shapes: {to_agent, task, context} and the nested request.to_agent shape. Rebuild with npm run build and the TypeScript check, and show me both pass. Don't change anything else in the frontend.
+
+4. Stand-in test and checks. Rerun the stand-in agent tests (delegation, audit growth, ping-pong depth limit) and the API checks to confirm nothing broke. Confirm pip check is clean, mcp is still 1.30.0, the original database checksum still starts 23686a90, and gpt-6-luna is the only model name in repo files other than the quoted gateway deployment name in AI_prompts.md. Confirm .env, node_modules, the working database and the audit file are not staged.
+```
+
 ---
 
 ## Template for future problems

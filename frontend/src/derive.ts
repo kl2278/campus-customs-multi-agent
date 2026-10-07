@@ -28,9 +28,11 @@ export function latestRunId(events: AgentEvent[], ticketId: number | null): stri
 }
 
 export function parseHandoff(event: AgentEvent): Handoff | null {
-  const request = event.arguments?.["request"] as { to_agent?: string; task?: string } | undefined;
-  if (!request?.to_agent) return null;
-  return { to: request.to_agent, task: request.task ?? "" };
+  // Real runs send {to_agent, task, context}; older/stand-in runs nest it under "request".
+  const args = (event.arguments ?? {}) as { to_agent?: string; task?: string; request?: { to_agent?: string; task?: string } };
+  const to = args.to_agent ?? args.request?.to_agent;
+  if (!to) return null;
+  return { to, task: args.task ?? args.request?.task ?? "" };
 }
 
 /** Everything the agent cards and summaries show is derived from the events. */
