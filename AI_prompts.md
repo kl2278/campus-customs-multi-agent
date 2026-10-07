@@ -147,6 +147,26 @@ Follow-up on Problem 3: the assignment says to build the MCP server "using FastM
 4. Update mcp_server/README.md and output/harness.md only where they mention MCPServer or the library. Regenerate requirements.txt. Confirm the model-name search of the files is still clean and both database checksums still start 23686a90.
 ```
 
+## Problem 4: Add the MCP server to vibe coder and test each tool
+
+**Prompt:**
+
+```
+Problem 4 of my homework is to add my MCP server to this project so you (my vibe coder) can call its tools. This first step is only the connection setup.
+
+1. Open mcp_server/server.py. If it doesn't already start the server when run as a script, add the minimal lines needed to run it over stdio (if __name__ == "__main__": mcp.run()). Don't change any tool logic. Nothing in the server may print to stdout, since stdout carries the protocol.
+
+2. Add the server to this project's local MCP list in .mcp.json at the project root, with the server name "campus-customs". Use `claude mcp add --scope project` or write the JSON yourself. The command must be portable because this goes in a public repo: use the relative path .venv/bin/python with args ["-m", "mcp_server.server"], with no absolute paths, no usernames, and no env values or secrets.
+
+3. Check that the server starts and answers a tools/list request over stdio from the project root (a quick script that launches it as a subprocess is fine). Show me that it lists exactly 3 tools, then stop it.
+
+4. Run `claude mcp list` and show me the status. Tell me exactly what I need to do next to approve and load the project server (I expect I need to restart Claude Code in this folder and approve it).
+
+5. Don't run the three tools yet, don't change the database, don't upgrade the mcp package (it stays pinned at 1.30.0), and don't build ahead.
+```
+
+**Note:** The test prompts for each tool follow after I restart Claude Code and approve the server.
+
 ---
 
 ## Template for future problems
