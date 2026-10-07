@@ -1,0 +1,133 @@
+{
+  "starting_balance": 3400.0,
+  "ending_balance": 160.0,
+  "note": "ending_balance was read from the cash_accounts table of the working database after all tickets were resolved. Approver names are shown as initials only. Starting balance is the original database's checking balance (the desk was reset to it before the runs).",
+  "tickets": [
+    {
+      "id": 101,
+      "final_status": "resolved",
+      "outcome": "Invoice 501 ($840) was paid after a human approved it, which freed vendor 1 to ship, and a one-unit purchase order (approved, $8.00, moves no cash, expected 2026-09-05) was recorded. Two unsent customer drafts are saved; the second mentions a pending order and an estimated date, which breaks the Customer Service rule.",
+      "run_ids": [
+        "534ea9de3a8d",
+        "b2863114f44b",
+        "814ef7f0c0a9"
+      ],
+      "failed_run_ids": [
+        "534ea9de3a8d"
+      ],
+      "run_notes": "534ea9de3a8d failed at the first model request (gateway 400, function tools with reasoning effort on chat completions) and spent no tokens. b2863114f44b queued the $840 payment; the human approved it afterwards. 814ef7f0c0a9 created the purchase order and resolved the ticket.",
+      "agents": {
+        "boss": "Read the ticket, handed work to Inventory, Accounting and Customer Service, and wrote the final report in both working runs.",
+        "inventory": "Found stock 0 of 1 needed, matched vendor 1 by specialty, saw it blocked by the open invoice in the first run, and created purchase order 1 once it could ship.",
+        "accounting": "Read invoice 501 and queued the $840 payment for approval (approval 1); in the second run confirmed it was paid. It never called execute_approved_payment.",
+        "customer_service": "Saved two unsent drafts; the second mentions a pending purchase order and an estimated arrival date.",
+        "facilities": "not involved"
+      },
+      "cash_change": {
+        "amount": -840.0,
+        "reason": "Invoice 501 payment (payment 1) executed when the human approved approval 1. Purchase order 1 ($8.00) moved no cash."
+      },
+      "human_approvals": [
+        {
+          "approval_id": 1,
+          "kind": "invoice",
+          "requested_by": "accounting",
+          "decided_by": "N",
+          "status": "executed",
+          "amount": 840.0
+        },
+        {
+          "approval_id": 2,
+          "kind": "purchase_order",
+          "requested_by": "inventory",
+          "decided_by": "N",
+          "status": "approved",
+          "purchase_order_id": 1,
+          "quantity": 1,
+          "sku": "CC-TEE-WHITE",
+          "size": "S",
+          "amount": 8.0
+        }
+      ]
+    },
+    {
+      "id": 102,
+      "final_status": "resolved",
+      "outcome": "Rent of $2,400 on lease 1 was confirmed due 2026-09-02 (not overdue) and queued for approval; after a human approved it the payment executed and the lease's next_due moved to 2026-10-02.",
+      "run_ids": [
+        "aceccff3e096"
+      ],
+      "failed_run_ids": [],
+      "agents": {
+        "boss": "Read the ticket, handed it to Facilities, re-checked approvals and cash, and wrote the final report.",
+        "facilities": "Read lease 1 and the shop date and confirmed the rent amount and due date.",
+        "accounting": "Checked cash and queued the rent payment for approval (approval 3).",
+        "inventory": "not involved",
+        "customer_service": "not involved"
+      },
+      "cash_change": {
+        "amount": -2400.0,
+        "reason": "Rent payment (payment 2) executed when the human approved approval 3."
+      },
+      "human_approvals": [
+        {
+          "approval_id": 3,
+          "kind": "rent",
+          "requested_by": "accounting",
+          "decided_by": "N",
+          "status": "executed",
+          "amount": 2400.0
+        }
+      ]
+    },
+    {
+      "id": 103,
+      "final_status": "resolved",
+      "outcome": "The Boss approved a unit price of $52.00 (total $1,040.00 for 20, above the $22.00 unit cost) in the third run. The two purchase orders for the 12-unit shortfall (PO 2 and PO 3, $264.00 each) were rejected by the human approver, the shortfall is not addressed, and no customer draft exists.",
+      "run_ids": [
+        "39477e8ca8e6",
+        "b5fe65e9e187",
+        "94e6c4f1542a"
+      ],
+      "failed_run_ids": [],
+      "run_notes": "Runs 1 and 2 ended with a purchase order pending approval (rejected afterwards) and no resolution. Run 3 involved only the Boss and Accounting and resolved the ticket with a price decision only.",
+      "agents": {
+        "boss": "Read the ticket and handed pricing to Accounting (and stock to Inventory in runs 1 and 2); in run 3 it decided the price itself.",
+        "accounting": "Read the unit cost ($22.00) and list price ($58.00) and reported the margin ($36.00, 62.07%) in all three runs.",
+        "inventory": "In runs 1 and 2 found 8 of 20 in stock, matched vendor 1, and created a 12-unit purchase order each time (PO 2, then PO 3 after PO 2 was rejected). Not called in run 3.",
+        "customer_service": "not involved",
+        "facilities": "not involved"
+      },
+      "cash_change": {
+        "amount": 0.0,
+        "reason": "Purchase orders move no cash and both were rejected; the price decision moves no cash."
+      },
+      "human_approvals": [
+        {
+          "approval_id": 4,
+          "kind": "purchase_order",
+          "requested_by": "inventory",
+          "decided_by": "N",
+          "status": "rejected",
+          "purchase_order_id": 2,
+          "quantity": 12,
+          "sku": "CC-HOOD-NAVY",
+          "size": "M",
+          "amount": 264.0
+        },
+        {
+          "approval_id": 5,
+          "kind": "purchase_order",
+          "requested_by": "inventory",
+          "decided_by": "N",
+          "status": "rejected",
+          "purchase_order_id": 3,
+          "quantity": 12,
+          "sku": "CC-HOOD-NAVY",
+          "size": "M",
+          "amount": 264.0
+        }
+      ]
+    }
+  ]
+}

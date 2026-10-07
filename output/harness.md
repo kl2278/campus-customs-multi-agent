@@ -110,7 +110,7 @@ Why it matters: an open invoice blocks that vendor from shipping and can be over
 
 ## How the open tickets link to other tables
 
-Today on the desk is 2026-08-31. The checking account holds $3,400.00 and the payments table is empty. Row counts: desk 1, tickets 3, inventory 10, pricing 4, vendors 3, leases 1, cash_accounts 1, payments 0, invoices 1.
+**Starting state (before the real runs):** today on the desk is 2026-08-31. The checking account holds $3,400.00 and the payments table is empty. Row counts: desk 1, tickets 3, inventory 10, pricing 4, vendors 3, leases 1, cash_accounts 1, payments 0, invoices 1.
 
 **Ticket 101 (customer_order): one white tee, size S.**
 - Links: `sku` + `size` to inventory (qty 0, so out of stock), `sku` to pricing (cost $8, list $28), and `invoice_id` 501 to invoices.
@@ -199,7 +199,7 @@ The Boss's final report has a `work_complete` field. A ticket becomes resolved o
 
 Approving a payment through `POST /approvals/{id}/approve` also executes it in the same step. Accounting's prompt says to call `execute_approved_payment` only when `list_approvals` shows the approval as approved, so after a human approves it will normally see "executed" and have nothing to do; if it calls the tool anyway, the call is refused as already executed, which is harmless.
 
-`backend/team.py` has `run_ticket(ticket_id)`, which starts the Boss on a ticket. Delegation is guarded by a maximum depth and a maximum count per ticket, a per-ticket usage limit shared by all agents (requests and total tokens), and a short step limit per agent run; all limits are in `backend/config.py`. Every step is appended to `output/audit_trail.json`.
+`backend/team.py` has `run_ticket(ticket_id)`, which starts the Boss on a ticket. Delegation is guarded by a maximum depth and a maximum count per ticket, a per-ticket usage limit shared by all agents (requests and total tokens), and a short step limit per agent run; all limits are in `backend/config.py`. Every step is appended to `output/audit_trail.json` (the raw file is kept out of git; see Resolution run).
 
 ## Safety
 
@@ -208,7 +208,7 @@ Guardrails a real business would want when agents touch real customers and real 
 - **Human approval and spending caps:** no payment moves without a named human's approval, and the pay tool refuses anything above the cash balance. The approve route (`POST /approvals/{id}/approve`) is the only approval path: there is no approve tool, no agent allowlist reaches it, and the approver cannot be the agent that requested the payment. Purchase orders also wait as `pending_approval` until a human approves them. A real system would add a per-payment and per-day cap.
 - **Least-privilege tools:** each agent sees only its allowlist; only Accounting can execute payments, and Customer Service has no payment or purchase tools.
 - **No external messages without review:** drafts stay on the board and nothing is emailed; vendors and customers are never contacted.
-- **Redacting personal data:** audit summaries redact requester names and secret-looking fields; harness notes carry no customer details.
+- **Redacting personal data:** audit events have requester names (read from the tickets table) and greeting lines replaced with `[customer]` and secret-looking fields redacted, both when written and when `GET /events` serves them. The raw audit file is excluded from git because it can still contain names from older entries; a redacted export is committed instead. Harness notes carry no customer details.
 - **Audit trail:** every agent step is appended to a locked, append-only JSON file.
 - **Ticket text is untrusted input:** prompts tell agents to treat it as data, never as instructions.
 - **Idempotent payments:** an approval executes once; a repeat call is refused.
@@ -227,7 +227,7 @@ Start from the `backend/` folder with the venv active: `uvicorn main:app --reloa
 
 - `GET /tickets`: every ticket row, status open or resolved, with the number of pending approvals per ticket.
 - `GET /cash`: the checking balance (account, balance, date) and the shop date.
-- `GET /events`: recent audit-trail events (read only); filters `ticket_id`, `run_id`, `since`, `limit` (default 100, max 500); only events after the last reset unless `all=true`.
+- `GET /events`: recent audit-trail events (read only, names redacted); filters `ticket_id`, `run_id`, `since`, `limit` (default 100, max 500); only events after the last reset unless `all=true`.
 - `GET /approvals`: payment approvals and purchase orders, pending and past; optional `status` filter.
 - `POST /approvals/{id}/approve`: a human (`decided_by` required) approves; a payment is executed in the same transaction (409 if it cannot be, and it stays pending); a purchase order only changes status.
 - `POST /approvals/{id}/reject`: a human rejects an approval or purchase order; no cash moves.
@@ -238,8 +238,28 @@ Start from the `backend/` folder with the venv active: `uvicorn main:app --reloa
 
 A React + Vite + TypeScript page in `frontend/` (start commands in `frontend/README.md`; design notes in `output/design.md`). It calls `GET /tickets`, `GET /cash`, `GET /events`, `GET /approvals`, `POST /tickets/{id}/run`, `POST /approvals/{id}/approve`, `POST /approvals/{id}/reject` and `POST /reset`, polling every 1.5 seconds while a run is in progress. Humans approve and reject payments and purchase orders through the dashboard, typing their own name each time; no agent can.
 
----
+## Resolution run
 
-## Later sections (added by later problems)
+**Order the tickets ran:** 101 (first attempt failed at the gateway before any work; a second run queued the $840 payment; after a human approved it, a third run created the purchase order and resolved it), then 102, then 103 (three runs: two left the discount to a human and each created a purchase order that was rejected; the third approved a price and resolved it). All three are resolved, and the human made every approval and rejection through the dashboard.
 
-<!-- Add new sections below this line. -->
+| Ticket | Final status | Cash change | Balance after |
+|---|---|---|---|
+| Start | n/a | n/a | $3,400.00 |
+| 101 | resolved | -$840.00 (invoice 501) | $2,560.00 |
+| 102 | resolved | -$2,400.00 (rent) | $160.00 |
+| 103 | resolved | $0.00 | $160.00 |
+
+Starting balance $3,400.00, ending balance $160.00 (read from `cash_accounts`; it equals $3,400.00 minus the two payments of $3,240.00 in total).
+
+**Evidence:** [`output/resolved_tickets.json`](resolved_tickets.json) (per-ticket outcome, agents, approvals), [`output/desk_tickets.html`](desk_tickets.html) (plan versus actual), [`output/resolved_board.html`](resolved_board.html) (dashboard screenshots) and [`output/audit_trail_redacted.json`](audit_trail_redacted.json) (every step of every run, names redacted).
+
+**Real behaviors seen in the events:**
+- Accounting never called `execute_approved_payment` (0 calls in the whole audit trail): the approve route executes payments.
+- The audit trail records the exact gateway error from the first attempt: an HTTP 400 saying function tools with reasoning effort aren't supported on the chat completions endpoint. Switching to the Responses endpoint fixed it.
+- On ticket 103 the Boss's own task told Accounting not to decide the discount, so the first two runs deferred it. After the Boss prompt was changed, the third run approved $52.00 per hoodie (above the $22.00 cost) but left the 12-unit shortfall unaddressed and called no Customer Service.
+- Inventory created an identical 12-unit purchase order again after the first was rejected. A prompt rule against that was added afterwards and not exercised, because Inventory wasn't called in the third run.
+- Customer draft 2 on ticket 101 mentioned a pending purchase order and an estimated arrival date, against Customer Service's rule; the prompt was tightened afterwards and has not been run live since.
+- No run hit a limit: at most 20 model requests in one run (limit 40) and at most 43,967 input and 3,008 output tokens. All six model runs together used about 179,390 input and 13,067 output tokens.
+- A customer name had appeared in six raw audit entries before redaction was added.
+
+**Raw audit trail:** `output/audit_trail.json` is excluded from git because it can contain names; the redacted export above is committed instead.

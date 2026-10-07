@@ -139,12 +139,12 @@
 
     <div class="actual">
       <h3>Actual</h3>
-      <p class="placeholder">To fill in after I run the agents.</p>
-      <h4>Who the Boss called first</h4><div class="blank"></div>
-      <h4>Delegations</h4><div class="blank"></div>
-      <h4>Tools used</h4><div class="blank"></div>
-      <h4>Outcome</h4><div class="blank"></div>
-      <h4>How it differed from my plan</h4><div class="blank"></div>
+      <p><em>Filled in from the audit trail and the database after the real runs.</em></p>
+      <h4>Who the Boss called first</h4><div class="blank"><strong>Inventory</strong>, in both working runs. The very first attempt (run 534ea9de3a8d) got no answer at all: the gateway rejected the Boss's first request, so nothing was called.</div>
+      <h4>Delegations</h4><div class="blank"><ul><li>Run 2 (b2863114f44b): Boss to Inventory; Inventory to Accounting (queued the $840 payment for approval); Boss to Accounting (re-read the invoice and approval); Boss to Customer Service (saved draft 1).</li><li>Run 3 (814ef7f0c0a9), after a human approved the payment: Boss to Inventory (created purchase order 1); Boss to Accounting (confirmed the invoice was paid); Boss to Customer Service (saved draft 2).</li><li>Facilities was not involved.</li></ul></div>
+      <h4>Tools used</h4><div class="blank"><code>get_ticket ×7</code> <code>list_approvals ×5</code> <code>list_purchase_orders ×4</code> <code>list_customer_drafts ×4</code> <code>get_invoice ×3</code> <code>check_stock ×2</code> <code>list_vendors ×2</code> <code>get_vendor_ship_status ×2</code> <code>list_payments ×2</code> <code>get_shop_date ×2</code> <code>save_customer_draft ×2</code> <code>get_cash_balance ×1</code> <code>queue_payment_for_approval ×1</code> <code>create_purchase_order ×1</code><p>Counts are across all three runs. Accounting never called <code>execute_approved_payment</code>: the approve route executes payments.</p></div>
+      <h4>Outcome</h4><div class="blank">Resolved. The $840 invoice 501 payment was approved by a human and executed (cash $3,400.00 to $2,560.00). Purchase order 1 (one tee, $8.00, expected 2026-09-05) was recorded and approved; it moved no cash. Two customer drafts are saved and unsent.</div>
+      <h4>How it differed from my plan</h4><div class="blank"><ul><li><strong>First call:</strong> matched (Inventory).</li><li><strong>Delegations:</strong> matched. Inventory handed the payment to Accounting, Customer Service drafted a message, and Facilities was not involved. Extra: the Boss also delegated to Accounting itself and re-read the approvals, orders and drafts, and a second working run was needed after the payment was approved.</li><li><strong>Tools:</strong> all ten tools I listed were used (<code>list_open_invoices</code> was not, which my plan allowed). Not in my plan: <code>list_purchase_orders</code>, <code>list_customer_drafts</code>, <code>list_payments</code> and <code>create_purchase_order</code>.</li><li><strong>End state:</strong> matched for the first working run (payment pending approval, no purchase order, draft 1 gave no date). After the payment was approved, the purchase order was created as I expected, arriving 5 days after the shop date (2026-09-05), approved with no cash change. Not matched: draft 2 mentioned a pending purchase order and gave an estimated arrival date, which breaks the Customer Service rule. Also not in my plan: the first attempt failed at the gateway before any work.</li></ul></div>
     </div>
   </section>
 
@@ -183,12 +183,12 @@
 
     <div class="actual">
       <h3>Actual</h3>
-      <p class="placeholder">To fill in after I run the agents.</p>
-      <h4>Who the Boss called first</h4><div class="blank"></div>
-      <h4>Delegations</h4><div class="blank"></div>
-      <h4>Tools used</h4><div class="blank"></div>
-      <h4>Outcome</h4><div class="blank"></div>
-      <h4>How it differed from my plan</h4><div class="blank"></div>
+      <p><em>Filled in from the audit trail and the database after the real runs.</em></p>
+      <h4>Who the Boss called first</h4><div class="blank"><strong>Facilities</strong> (run aceccff3e096).</div>
+      <h4>Delegations</h4><div class="blank"><ul><li>Boss to Facilities, who confirmed the notice against lease 1 and the shop date.</li><li>Facilities to Accounting, who checked cash and queued the $2,400 rent payment for approval (approval 3).</li><li>Inventory and Customer Service were not involved.</li></ul></div>
+      <h4>Tools used</h4><div class="blank"><code>get_ticket ×3</code> <code>get_cash_balance ×2</code> <code>get_shop_date ×1</code> <code>get_lease_rent_status ×1</code> <code>queue_payment_for_approval ×1</code> <code>list_approvals ×1</code></div>
+      <h4>Outcome</h4><div class="blank">Resolved. The $2,400 rent payment was approved by a human and executed; the lease's next due date moved from 2026-09-02 to 2026-10-02, and cash went from $2,560.00 to $160.00.</div>
+      <h4>How it differed from my plan</h4><div class="blank"><ul><li><strong>First call:</strong> matched (Facilities).</li><li><strong>Delegations:</strong> matched. Facilities (rather than the Boss) delegated to Accounting, as my plan allowed; Inventory and Customer Service were not needed.</li><li><strong>Tools:</strong> exactly the six I listed. Each of the three agents also read the ticket with <code>get_ticket</code>.</li><li><strong>End state:</strong> matched. The payment waited for human approval, and after paying this and invoice 501 the balance is $160.</li></ul></div>
     </div>
   </section>
 
@@ -228,19 +228,24 @@
 
     <div class="actual">
       <h3>Actual</h3>
-      <p class="placeholder">To fill in after I run the agents.</p>
-      <h4>Who the Boss called first</h4><div class="blank"></div>
-      <h4>Delegations</h4><div class="blank"></div>
-      <h4>Tools used</h4><div class="blank"></div>
-      <h4>Outcome</h4><div class="blank"></div>
-      <h4>How it differed from my plan</h4><div class="blank"></div>
+      <p><em>Filled in from the audit trail and the database after the real runs.</em></p>
+      <h4>Who the Boss called first</h4><div class="blank"><strong>Accounting</strong>, in all three runs (39477e8ca8e6, b5fe65e9e187, 94e6c4f1542a).</div>
+      <h4>Delegations</h4><div class="blank"><ul><li>Runs 1 and 2: Boss to Accounting (pricing), then Boss to Inventory (stock and vendor).</li><li>Run 3: Boss to Accounting only. Inventory, Customer Service and Facilities were not called.</li><li>Customer Service was never called on this ticket, so no draft exists for 103.</li></ul></div>
+      <h4>Tools used</h4><div class="blank"><code>get_ticket ×7</code> <code>list_purchase_orders ×4</code> <code>get_unit_pricing ×3</code> <code>check_stock ×2</code> <code>list_vendors ×2</code> <code>get_vendor_ship_status ×2</code> <code>create_purchase_order ×2</code> <code>list_approvals ×2</code> <code>get_shop_date ×1</code></div>
+      <h4>Outcome</h4><div class="blank">Resolved in run 3: the Boss approved a unit price of $52.00 (total $1,040.00 for 20), $30.00 above the $22.00 unit cost. Runs 1 and 2 left the discount to a human, and each created a 12-unit purchase order ($264.00 each, PO 2 and PO 3); the human approver rejected both because cash ($160) could not cover $264. The 12-unit shortfall (8 in stock of 20) is not addressed. No cash moved.</div>
+      <h4>How it differed from my plan</h4><div class="blank"><ul><li><strong>First call:</strong> matched (Accounting).</li><li><strong>Delegations:</strong> runs 1 and 2 followed Accounting then Inventory, but Customer Service was never called. Run 3 skipped Inventory and Customer Service.</li><li><strong>Tools:</strong> used <code>get_ticket</code>, <code>get_shop_date</code>, <code>get_unit_pricing</code>, <code>check_stock</code>, <code>list_vendors</code>, <code>get_vendor_ship_status</code> and <code>list_approvals</code>. Not used: <code>get_cash_balance</code> and <code>save_customer_draft</code>. Not in my plan: <code>list_purchase_orders</code> and <code>create_purchase_order</code>.</li><li><strong>End state:</strong> a discount decision above the $22 cost was reached (matched, in run 3 after the Boss prompt was changed). No payment was queued for the restock (matched). A draft reply was expected and does not exist. No purchase order was expected, but two were created: invoice 501 was already paid when this ticket ran, so vendor 1 could ship, and both orders were rejected. The 12-unit shortfall was left unaddressed.</li></ul></div>
     </div>
   </section>
 
   <!-- ===================== CASH ===================== -->
   <section class="panel" role="tabpanel" id="panel-cash" aria-labelledby="tab-cash">
     <h2>Cash</h2>
-    <p class="later">Coming later.</p>
+    <table style="border-collapse:collapse;width:100%;font-size:.95em">
+      <thead><tr><th style="border:1px solid #d5dbe3;padding:6px 8px;text-align:left;background:#e6eef9">Step</th><th style="border:1px solid #d5dbe3;padding:6px 8px;text-align:left;background:#e6eef9">Why</th><th style="border:1px solid #d5dbe3;padding:6px 8px;text-align:left;background:#e6eef9">Change</th><th style="border:1px solid #d5dbe3;padding:6px 8px;text-align:left;background:#e6eef9">Balance after</th></tr></thead>
+      <tbody><tr><td style="border:1px solid #d5dbe3;padding:6px 8px;vertical-align:top">Starting balance after the reset</td><td style="border:1px solid #d5dbe3;padding:6px 8px;vertical-align:top">The desk was reset to the original database</td><td style="border:1px solid #d5dbe3;padding:6px 8px;text-align:right;white-space:nowrap;vertical-align:top"></td><td style="border:1px solid #d5dbe3;padding:6px 8px;text-align:right;white-space:nowrap;vertical-align:top">$3,400.00</td></tr><tr><td style="border:1px solid #d5dbe3;padding:6px 8px;vertical-align:top">Ticket 101 resolved</td><td style="border:1px solid #d5dbe3;padding:6px 8px;vertical-align:top">Invoice 501 payment (payment 1) approved by a human and executed. Purchase order 1 ($8.00) was approved but purchase orders move no cash.</td><td style="border:1px solid #d5dbe3;padding:6px 8px;text-align:right;white-space:nowrap;vertical-align:top">&minus;$840.00</td><td style="border:1px solid #d5dbe3;padding:6px 8px;text-align:right;white-space:nowrap;vertical-align:top">$2,560.00</td></tr><tr><td style="border:1px solid #d5dbe3;padding:6px 8px;vertical-align:top">Ticket 102 resolved</td><td style="border:1px solid #d5dbe3;padding:6px 8px;vertical-align:top">Rent payment for lease 1 (payment 2) approved by a human and executed.</td><td style="border:1px solid #d5dbe3;padding:6px 8px;text-align:right;white-space:nowrap;vertical-align:top">&minus;$2,400.00</td><td style="border:1px solid #d5dbe3;padding:6px 8px;text-align:right;white-space:nowrap;vertical-align:top">$160.00</td></tr><tr><td style="border:1px solid #d5dbe3;padding:6px 8px;vertical-align:top">Ticket 103 resolved</td><td style="border:1px solid #d5dbe3;padding:6px 8px;vertical-align:top">$0.00: the $52.00 price decision moves no cash, and purchase orders 2 and 3 ($264.00 each) were rejected (and purchase orders move no cash anyway).</td><td style="border:1px solid #d5dbe3;padding:6px 8px;text-align:right;white-space:nowrap;vertical-align:top">$0.00</td><td style="border:1px solid #d5dbe3;padding:6px 8px;text-align:right;white-space:nowrap;vertical-align:top">$160.00</td></tr>
+      <tr><td style="border:1px solid #d5dbe3;padding:6px 8px;vertical-align:top"><strong>Ending balance</strong></td><td style="border:1px solid #d5dbe3;padding:6px 8px;vertical-align:top">$3,400.00 minus two payments totalling $3,240.00</td><td style="border:1px solid #d5dbe3;padding:6px 8px;text-align:right;white-space:nowrap;vertical-align:top">&minus;$3,240.00</td><td style="border:1px solid #d5dbe3;padding:6px 8px;text-align:right;white-space:nowrap;vertical-align:top"><strong>$160.00</strong></td></tr></tbody>
+    </table>
+    <p>The ending balance equals the balance in the <code>cash_accounts</code> table, $160.00 (account dated 2026-08-31), read on 2026-10-07 23:17 UTC.</p>
   </section>
 
   <!-- ===================== REFLECTION ===================== -->
