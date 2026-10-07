@@ -7,3 +7,5 @@ data/campus_customs_new.db
 *.lock
 dist/
 *.tsbuildinfo
+# Raw audit trail may contain requester names from the course data; export a redacted copy instead
+output/audit_trail.json
