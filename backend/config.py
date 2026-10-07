@@ -100,7 +100,7 @@ def portkey_headers() -> dict[str, str]:
 def build_model():
     """Create the Portkey-routed model used by every agent."""
     from openai import AsyncOpenAI
-    from pydantic_ai.models.openai import OpenAIChatModel
+    from pydantic_ai.models.openai import OpenAIResponsesModel
     from pydantic_ai.providers.openai import OpenAIProvider
 
     headers = portkey_headers()
@@ -109,4 +109,5 @@ def build_model():
         api_key=headers["x-portkey-api-key"],
         default_headers=headers,
     )
-    return OpenAIChatModel(MODEL_NAME, provider=OpenAIProvider(openai_client=client))
+    # Chat completions rejected function tools for this model (HTTP 400); the Responses endpoint works.
+    return OpenAIResponsesModel(MODEL_NAME, provider=OpenAIProvider(openai_client=client))

@@ -25,7 +25,7 @@ from fastapi.middleware.cors import CORSMiddleware  # noqa: E402
 from fastapi.responses import JSONResponse  # noqa: E402
 
 from backend import config  # noqa: E402
-from backend.audit import append_reset_marker, read_events  # noqa: E402
+from backend.audit import append_reset_marker, read_events, scrub_secrets  # noqa: E402
 from backend.models import AgentReport, TicketRunResult  # noqa: E402
 from backend.schemas import (  # noqa: E402
     ApprovalOut,
@@ -45,6 +45,7 @@ from mcp_server.db import WriteRefused  # noqa: E402
 from mcp_server.reset import reset_working_copy  # noqa: E402
 
 log = logging.getLogger("campus_customs.api")
+LOG_LIMIT = 600  # characters of an error message written to the terminal
 config.load_env()
 
 app = FastAPI(title="Campus Customs Operations API")
@@ -217,9 +218,13 @@ async def run_ticket_route(ticket_id: int, run: RunFunction = Depends(get_run_fu
         except asyncio.TimeoutError:
             raise HTTPException(status_code=504, detail="The run timed out. The ticket stays open.")
         except Exception as exc:
-            log.error("Run on ticket %s failed: %s", ticket_id, type(exc).__name__)
+            log.error("Run on ticket %s failed: %s", ticket_id, scrub_secrets(f"{type(exc).__name__}: {exc}")[:LOG_LIMIT])
             raise HTTPException(status_code=500, detail="The run failed. The ticket stays open.")
         if result.status != "finished":
+            log.error(
+                "Run %s on ticket %s stopped (%s): %s",
+                result.run_id, ticket_id, result.status, scrub_secrets(result.error or "")[:LOG_LIMIT],
+            )
             raise HTTPException(
                 status_code=500,
                 detail=f"The run stopped early ({result.status}, run {result.run_id}). The ticket stays open.",

@@ -365,6 +365,40 @@ Problem 8 of my homework is to build the React dashboard in frontend/ (React + V
 
 **Follow-up (if needed):** None needed.
 
+## Problem 9: Resolve the tickets
+
+**Prompt (stage 1 of 2):**
+
+```
+Problem 9 of my homework is to resolve the 3 tickets with real agent runs. This is stage 1: a read-only check before I start. I do every Run, Approve, Reject and Reset click myself in the dashboard. Don't spend any tokens and don't write to any database in this stage.
+
+1. I have just pressed Reset desk. Confirm it worked: open data/campus_customs_new.db read-only (mode=ro) and compare it with data/campus_customs.db on these: checking balance, payments empty, invoice 501 status, lease 1 next_due, all 3 tickets open, inventory and pricing unchanged, and approvals, purchase_orders and customer_drafts empty or absent. Show a comparison table and tell me the starting checking balance. Tell me about any difference.
+
+2. Look at output/audit_trail.json: show the number of entries and the step kind and timestamp of the last 3 (no message content). Confirm the last one is a reset marker.
+
+3. Print the limits in backend/config.py (run timeout, delegation depth and count, request and token limits, step limit) so I know what to expect. Don't change them.
+
+4. Confirm ports 8000 and 5173 are both being listened on, and that GET /tickets, GET /cash and GET /approvals on localhost:8000 agree with the database. Only GET requests. Check only that PORTKEY_API_KEY is set, and never show it.
+
+5. Rules for the rest of this session: never call POST /tickets/{id}/run, POST /approvals/{id}/approve or reject, or POST /reset; never write to the working database; never edit code, prompts or limits unless I say so. When I tell you a run finished or I approved something, do read-only checks and tell me: the ticket status, the new audit events grouped by run id (which agents worked, who handed work to whom, which tools were used, the Boss's final report), any pending approvals with their amounts, token use if the audit shows it, and whether the balance in GET /cash matches the database. Flag anything odd, such as a refused tool call, repeated steps, a payment that doesn't match its invoice or rent, or a run that hit a limit. Never show names of customers.
+```
+
+**Follow-up (if needed):** The first prompt didn't say what to do if a real agent run crashed, and the first run on ticket 101 failed because the gateway rejects function tools together with reasoning effort on the chat completions endpoint for this model.
+
+**Follow-up prompt:**
+
+```
+Follow-up on Problem 9: the run on ticket 101 failed with a 500. The audit file shows the gateway rejected the Boss's first request with a 400: "Function tools with reasoning_effort are not supported for gpt-6-luna-global in /v1/chat/completions. To use function tools, use /v1/responses or set reasoning_eff…". I want this fixed before any ticket runs again. Don't run any ticket and don't call POST /tickets/{id}/run, /approve, /approve, /reject or /reset. Don't change the limits in backend/config.py and don't touch either database.
+
+1. Apply the logging change you proposed: log the exception type and a short message (up to about 600 characters) to the backend terminal when a run stops with an error, and keep up to 800 characters in the audit error event, with the PORTKEY_API_KEY value scrubbed. Add the import it needs. Keep the HTTP response to the browser short and free of exception text, as it is now.
+
+2. Fix the model call. In backend/config.py, switch build_model from OpenAIChatModel to OpenAIResponsesModel with the same Portkey provider, the same model name gpt-6-luna and the same headers. Check the installed PydanticAI source for the right class name and import. Keep gpt-6-luna as the only model name. Don't set any reasoning effort yourself.
+
+3. Test with ONE tiny live call, using the same build_model the agents use. The call must include a small function tool, for example a made-up tool that returns the word "pong", and ask the model to call it and then reply with one short sentence. Run it as a scratch script in /tmp, not in the repo, and don't use any MCP tools or the database. Show me whether the tool was called, the final reply, and the input and output token counts. Never print the API key, headers or env values. If it fails, show me the full error message with any secret removed, then stop. Don't retry more than that one call and don't try other options on your own.
+
+4. If the one call succeeds, also check that the real Boss agent builds without a model call: construct it and list its tools and output type, but don't run it. Run the agent tests you used earlier with the stand-in model (delegation between two agents, audit trail growth, and the ping-pong depth limit) to confirm nothing broke. Confirm that pip check is clean, mcp is still 1.30.0, and the original database checksum still starts 23686a90.
+```
+
 ---
 
 ## Template for future problems

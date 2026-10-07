@@ -30,6 +30,18 @@ def _scrub(value: Any) -> Any:
     return value
 
 
+SECRET_ENV_NAMES = ("PORTKEY_API_KEY", "PORTKEY_PROVIDER", "PORTKEY_VIRTUAL_KEY", "PORTKEY_CONFIG")
+
+
+def scrub_secrets(text: str) -> str:
+    """Remove the values of the Portkey env vars from free text (errors, logs)."""
+    for name in SECRET_ENV_NAMES:
+        value = os.environ.get(name)
+        if value and len(value) >= 4:
+            text = text.replace(value, "[removed]")
+    return text
+
+
 def summarize(value: Any, limit: int = SUMMARY_LIMIT) -> str:
     """Short, redacted text for a tool result or argument blob."""
     if hasattr(value, "model_dump"):
