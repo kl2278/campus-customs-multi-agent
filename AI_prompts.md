@@ -322,6 +322,49 @@ Problem 7 of my homework is to build the FastAPI routes in backend/main.py that 
 
 **Follow-up (if needed):** None needed.
 
+## Problem 8: Agent dashboard
+
+**Prompt:**
+
+```
+Problem 8 of my homework is to build the React dashboard in frontend/ (React + Vite + TypeScript) that calls the backend routes from Problem 7. We are building and checking the UI only. Make no live model calls and don't run the real tickets, so no tokens are spent.
+
+1. Setup. Check that node and npm are installed and tell me the versions (if missing, stop and tell me how to install them). Create frontend/ with Vite + React + TypeScript. Dev server on port 5173 with strictPort. Keep node_modules out of git (already in .gitignore) but commit package-lock.json. Don't add anything to the Python requirements. The API base URL is one constant, http://localhost:8000, optionally overridable by a VITE_API_URL env var. Confirm the backend CORS origins in backend/config.py already include http://localhost:5173 and http://127.0.0.1:5173. Only edit backend code if something is missing, and tell me if you do. Use as few dependencies as possible; bundle the font through npm (for example @fontsource/eb-garamond) so nothing loads from the internet at runtime.
+
+2. Features. The page calls these routes: GET /tickets, GET /cash, GET /events, GET /approvals, POST /tickets/{id}/run, POST /approvals/{id}/approve, POST /approvals/{id}/reject and POST /reset. It must:
+   a. List all 3 tickets with status (open or resolved) and a badge for pending approvals.
+   b. Let me pick one ticket and start the agent team on it. While a run is in progress, disable the run and reset buttons and poll GET /events (using the since filter), /tickets, /approvals and /cash every 1.5 seconds. Handle 404, 409, 422, 500 and 504 from the run route with a short friendly message, never a stack trace. The run request can take minutes, so don't time it out in the browser. Stop polling when the run ends, and do one last refresh.
+   c. Show the five agents (Boss, Inventory, Accounting, Facilities, Customer Service) as separate cards. Each card shows its status (idle, working, delegating, done), the latest thing it said, and chips for the MCP tools it has used on this ticket, all derived from the events. Delegations between agents should be visible (for example "Boss handed this to Inventory").
+   d. When a run finishes and the ticket is resolved, mark the ticket resolved in the list. If the run ends without resolving it, say so plainly.
+   e. Show a short per-agent summary for the selected ticket after the run (what each agent did, built from its final output events and tool calls). Agents that weren't involved should say so.
+   f. Show pending and past approvals. Approve and reject buttons ask for the approver's name in a text field the human must fill in (no default value from the app, and the button stays disabled while it's empty). Show the backend's 409 and 403 messages in friendly words. Show amount or quantity, who requested it and the linked ticket.
+   g. Show the checking balance and the shop date. The balance must visibly count down after an approved payment, with a small "-$X" delta showing for a moment.
+   h. A Reset button with a confirmation dialog, since it restores the database. After reset, clear the board.
+   i. Loading, empty and error states everywhere, and a calm message if the backend is not reachable ("Start the backend first").
+
+3. Look and feel. Make it feel like a real, cozy shop desk people want to sit at. Use a Yale-inspired theme: navy mixed with baby blue and a warm off-white paper tone. Use the font Garamond (stack: "EB Garamond", Garamond, "Cormorant Garamond", Georgia, serif). Use CSS variables for colors. Do not use Yale's logo, wordmark, crest or any official artwork. Ideas to use, and improve on freely:
+   - An original, cute bulldog mascot drawn by you as inline SVG (not a copy of any official mascot image), called "Dan the Bulldog" as a nod to Handsome Dan. He sits at the desk, is sleepy when idle, perky and watching when agents are working, and happy when a ticket resolves. Respect prefers-reduced-motion.
+   - Tickets styled like paper work orders on a desk, with a "RESOLVED" stamp that thumps down when done.
+   - Each agent has its own accent color, icon and personality so they read differently at a glance, and a speech-bubble style for what they say.
+   - A tidy activity feed of events, newest first, that can be collapsed.
+   - Responsive layout that stays usable on a narrow window, and keyboard accessible, with good contrast and visible focus.
+
+4. Sound. Add soft, short sound effects made with the Web Audio API (no audio files): a gentle doorbell or chime when a ticket resolves, a tiny blip when an agent starts, a soft ding when an approval is requested, and a low coin sound when a payment goes through. Keep the volume low. Nothing plays until the user has clicked something, and a visible mute/unmute button remembers its setting (localStorage is fine for that). Sounds must never repeat or loop.
+
+5. Bone game. When the selected ticket is resolved, a "Give Dan a bone" button unlocks. Clicking it (or dragging a bone onto Dan, if you can do it simply and accessibly) makes Dan do a happy animation with a soft sound, and adds to a "treats given" counter. Keep it simple, with no scoring pressure. It is optional fun, and the dashboard must work fine without it.
+
+6. Docs. Write output/design.md describing what you chose and why: layout, how the agents read differently, how resolved tickets and cash show up, the mascot, theme, font, sounds and bone game, and the accessibility choices (mute, reduced motion, contrast, keyboard use). Say clearly that the mascot is an original drawing inspired by Yale's bulldog tradition, with no official artwork. Keep it under about 1 page. Add a short frontend/README.md with the start commands: backend first (`cd backend && uvicorn main:app --reload --port 8000`), then `cd frontend && npm install && npm run dev`. In output/harness.md keep everything and add a short "Dashboard" section saying which routes the page calls and that humans approve through the dashboard.
+
+7. Verification without spending tokens, and without touching the real working database. Show me:
+   - npm run build and the TypeScript check both pass with no errors.
+   - Start the backend with its environment overrides pointing the database and audit file at scratch copies in /tmp, and seed a scratch audit file and a pending approval so the UI has something to show. Check from the command line that the dev server at http://localhost:5173 serves the page and that the API calls succeed from that origin (a CORS check with curl and an Origin header is fine). If you can do a headless browser check cheaply, do one screenshot, otherwise skip it and tell me I need to look myself.
+   - Confirm nothing in the frontend source calls an external URL other than http://localhost:8000, and that no model name other than gpt-6-luna appears in any repo file outside .venv and node_modules.
+   - Stop both servers afterwards and confirm no process is left on ports 8000 and 5173.
+   Don't run POST /tickets/{id}/run against the real backend, don't modify data/campus_customs.db, and don't change data/campus_customs_new.db. Confirm the original database checksum still starts 23686a90 and that .env and node_modules are not staged.
+```
+
+**Follow-up (if needed):** None needed.
+
 ---
 
 ## Template for future problems

@@ -234,6 +234,10 @@ Start from the `backend/` folder with the venv active: `uvicorn main:app --reloa
 - `POST /reset`: copy the original database over the working copy atomically (wipes the added tables) and append a reset marker to the audit trail; 409 during a run.
 - `POST /tickets/{id}/run`: run the Boss on one open ticket (one run at a time, with a timeout); the ticket becomes resolved only if the Boss's report has `work_complete` true and status is not failed or blocked.
 
+## Dashboard
+
+A React + Vite + TypeScript page in `frontend/` (start commands in `frontend/README.md`; design notes in `output/design.md`). It calls `GET /tickets`, `GET /cash`, `GET /events`, `GET /approvals`, `POST /tickets/{id}/run`, `POST /approvals/{id}/approve`, `POST /approvals/{id}/reject` and `POST /reset`, polling every 1.5 seconds while a run is in progress. Humans approve and reject payments and purchase orders through the dashboard, typing their own name each time; no agent can.
+
 ---
 
 ## Later sections (added by later problems)
