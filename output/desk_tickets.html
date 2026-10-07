@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Campus Customs: Desk Tickets Plan</title>
+<style>
+  :root {
+    --ink: #1d2733;
+    --muted: #5b6776;
+    --line: #d5dbe3;
+    --bg: #f5f7fa;
+    --card: #ffffff;
+    --accent: #1f4e8c;
+    --accent-soft: #e6eef9;
+    --warn: #8a5a00;
+    --warn-soft: #fff6df;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: var(--ink);
+    background: var(--bg);
+    line-height: 1.5;
+  }
+  header { padding: 20px 16px 8px; max-width: 920px; margin: 0 auto; }
+  header h1 { margin: 0 0 4px; font-size: 1.5rem; }
+  header p { margin: 0; color: var(--muted); }
+  main { max-width: 920px; margin: 0 auto; padding: 0 16px 40px; }
+
+  .tabs { display: flex; flex-wrap: wrap; gap: 6px; margin: 16px 0 0; padding: 0; border-bottom: 2px solid var(--line); }
+  .tab {
+    font: inherit; font-weight: 600; cursor: pointer;
+    padding: 9px 14px; border: 1px solid var(--line); border-bottom: none;
+    border-radius: 8px 8px 0 0; background: #eef1f5; color: var(--muted);
+  }
+  .tab:hover { background: #e3e8ef; }
+  .tab:focus-visible { outline: 3px solid #7aa7e0; outline-offset: 1px; }
+  .tab[aria-selected="true"] {
+    background: var(--card); color: var(--accent);
+    border-color: var(--accent); border-bottom: 2px solid var(--card);
+    margin-bottom: -2px; box-shadow: inset 0 3px 0 var(--accent);
+  }
+
+  .panel { background: var(--card); border: 1px solid var(--line); border-top: none; padding: 18px 18px 24px; border-radius: 0 0 8px 8px; }
+  .js .panel[hidden] { display: none; }
+  .panel h2 { margin: 0 0 14px; font-size: 1.3rem; }
+  .panel h3 { margin: 22px 0 8px; font-size: 1.05rem; color: var(--accent); border-bottom: 1px solid var(--line); padding-bottom: 4px; }
+  .panel h4 { margin: 14px 0 4px; font-size: .95rem; }
+
+  .facts { background: var(--accent-soft); border: 1px solid #c3d4ee; border-radius: 8px; padding: 10px 14px; }
+  .facts h3 { margin-top: 0; border: none; padding: 0; }
+  .facts dl { display: grid; grid-template-columns: max-content 1fr; gap: 4px 14px; margin: 6px 0 0; }
+  .facts dt { font-weight: 600; }
+  .facts dd { margin: 0; }
+  @media (max-width: 520px) {
+    .facts dl { grid-template-columns: 1fr; gap: 0; }
+    .facts dt { margin-top: 6px; }
+    .tab { flex: 1 1 auto; text-align: center; }
+  }
+
+  .expected h4 { margin-top: 12px; }
+  .expected p, .expected ul { margin: 4px 0 8px; }
+  code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .86em;
+    background: #eef1f5; border: 1px solid var(--line); border-radius: 4px; padding: 1px 5px;
+    white-space: nowrap; display: inline-block; margin: 2px 2px 2px 0;
+  }
+
+  .actual { margin-top: 24px; border: 2px dashed var(--line); border-radius: 8px; padding: 4px 14px 14px; background: #fbfbfc; }
+  .placeholder { background: var(--warn-soft); color: var(--warn); border-radius: 6px; padding: 6px 10px; font-style: italic; margin: 8px 0 0; }
+  .blank { min-height: 3.2em; border-bottom: 1px solid var(--line); }
+
+  .later { color: var(--muted); font-style: italic; padding: 8px 0; }
+
+  footer { max-width: 920px; margin: 0 auto; padding: 0 16px 24px; color: var(--muted); font-size: .85rem; }
+
+  @media print {
+    body { background: #fff; font-size: 11pt; }
+    .tabs { display: none; }
+    .js .panel[hidden] { display: block; }
+    .panel { border: none; padding: 0 0 12px; page-break-after: always; }
+    .panel:last-of-type { page-break-after: auto; }
+    .facts, .actual { break-inside: avoid; }
+    .placeholder { background: none; border: 1px solid #999; color: #333; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>Campus Customs: Desk Tickets Plan</h1>
+  <p>My plan for the 3 open tickets, written before running any agents. Shop date: 2026-08-31. Checking balance: $3,400.</p>
+</header>
+
+<main>
+  <div class="tabs" role="tablist" aria-label="Desk tickets plan">
+    <button class="tab" role="tab" id="tab-101" aria-controls="panel-101" aria-selected="true">Ticket 101</button>
+    <button class="tab" role="tab" id="tab-102" aria-controls="panel-102" aria-selected="false" tabindex="-1">Ticket 102</button>
+    <button class="tab" role="tab" id="tab-103" aria-controls="panel-103" aria-selected="false" tabindex="-1">Ticket 103</button>
+    <button class="tab" role="tab" id="tab-cash" aria-controls="panel-cash" aria-selected="false" tabindex="-1">Cash</button>
+    <button class="tab" role="tab" id="tab-reflection" aria-controls="panel-reflection" aria-selected="false" tabindex="-1">Reflection</button>
+  </div>
+
+  <!-- ===================== TICKET 101 ===================== -->
+  <section class="panel" role="tabpanel" id="panel-101" aria-labelledby="tab-101">
+    <h2>Ticket 101: one white tee, size S</h2>
+
+    <div class="facts">
+      <h3>Ticket facts</h3>
+      <dl>
+        <dt>Request</dt><dd>One white tee (CC-TEE-WHITE), size S.</dd>
+        <dt>Stock</dt><dd>0 on hand, Aisle B. Out of stock.</dd>
+        <dt>Linked invoice</dt><dd>Invoice 501: $840.00 from vendor 1 (apparel reprint, 5-day lead time), due 2026-08-28, still open.</dd>
+        <dt>Overdue?</dt><dd>Yes, 3 days overdue against the shop date 2026-08-31.</dd>
+        <dt>Vendor rule</dt><dd>Vendor 1 cannot ship while invoice 501 is open.</dd>
+      </dl>
+    </div>
+
+    <div class="expected">
+      <h3>Expected</h3>
+      <h4>Boss calls first, and why</h4>
+      <p><strong>Inventory.</strong> Everything else depends on whether we can restock and who can ship, and Inventory is the agent that checks stock and vendors.</p>
+
+      <h4>Delegations I expect</h4>
+      <p>Boss to Inventory. Inventory finds the shortfall, picks vendor 1 by specialty (apparel reprint, since the database has no SKU-to-vendor link), and sees that vendor 1 can't ship because invoice 501 is open. Inventory (or Boss) then delegates to Accounting to queue the $840 payment for human approval. Boss then delegates to Customer Service to draft a status message for the customer. Facilities is not involved because nothing about the lease or space is touched.</p>
+
+      <h4>MCP tools I expect this run to use</h4>
+      <p>
+        <code>get_ticket</code> <code>get_shop_date</code> <code>check_stock</code> <code>list_vendors</code>
+        <code>get_vendor_ship_status</code> <code>get_invoice</code> (or <code>list_open_invoices</code>)
+        <code>get_cash_balance</code> <code>list_approvals</code> <code>queue_payment_for_approval</code>
+        <code>save_customer_draft</code>
+      </p>
+
+      <h4>Expected end state</h4>
+      <p>The payment is pending human approval. The agents can't approve it, so the purchase order can't be created until the payment is approved and executed. If it were created today, it would arrive 5 days after the shop date (2026-09-05). The customer draft should say the restock is pending and should not promise a date as certain.</p>
+    </div>
+
+    <div class="actual">
+      <h3>Actual</h3>
+      <p class="placeholder">To fill in after I run the agents.</p>
+      <h4>Who the Boss called first</h4><div class="blank"></div>
+      <h4>Delegations</h4><div class="blank"></div>
+      <h4>Tools used</h4><div class="blank"></div>
+      <h4>Outcome</h4><div class="blank"></div>
+      <h4>How it differed from my plan</h4><div class="blank"></div>
+    </div>
+  </section>
+
+  <!-- ===================== TICKET 102 ===================== -->
+  <section class="panel" role="tabpanel" id="panel-102" aria-labelledby="tab-102">
+    <h2>Ticket 102: rent notice, rent due in 2 days</h2>
+
+    <div class="facts">
+      <h3>Ticket facts</h3>
+      <dl>
+        <dt>Request</dt><dd>A rent notice from the landlord: shop rent due in 2 days.</dd>
+        <dt>Lease</dt><dd>Lease 1: $2,400.00 a month.</dd>
+        <dt>Next due</dt><dd>2026-09-02, which is 2 days after the shop date 2026-08-31.</dd>
+        <dt>Overdue?</dt><dd>No.</dd>
+        <dt>Cash</dt><dd>$3,400 covers $2,400. Paying both this and invoice 501 ($840) leaves $160.</dd>
+      </dl>
+    </div>
+
+    <div class="expected">
+      <h3>Expected</h3>
+      <h4>Boss calls first, and why</h4>
+      <p><strong>Facilities.</strong> It is a lease question, and Facilities owns leases and rent timing.</p>
+
+      <h4>Delegations I expect</h4>
+      <p>Boss to Facilities, who confirms the notice against the lease and the shop date. Facilities (or Boss) then delegates to Accounting to check cash and queue the $2,400 rent payment for human approval. Inventory is not needed because no stock is involved. Customer Service is not needed because the notice comes from the landlord side and there is no customer to answer.</p>
+
+      <h4>MCP tools I expect this run to use</h4>
+      <p>
+        <code>get_ticket</code> <code>get_shop_date</code> <code>get_lease_rent_status</code>
+        <code>get_cash_balance</code> <code>list_approvals</code> <code>queue_payment_for_approval</code>
+      </p>
+
+      <h4>Expected end state</h4>
+      <p>The rent payment is pending human approval. $3,400 covers $2,400, but paying both this and invoice 501 leaves $160.</p>
+    </div>
+
+    <div class="actual">
+      <h3>Actual</h3>
+      <p class="placeholder">To fill in after I run the agents.</p>
+      <h4>Who the Boss called first</h4><div class="blank"></div>
+      <h4>Delegations</h4><div class="blank"></div>
+      <h4>Tools used</h4><div class="blank"></div>
+      <h4>Outcome</h4><div class="blank"></div>
+      <h4>How it differed from my plan</h4><div class="blank"></div>
+    </div>
+  </section>
+
+  <!-- ===================== TICKET 103 ===================== -->
+  <section class="panel" role="tabpanel" id="panel-103" aria-labelledby="tab-103">
+    <h2>Ticket 103: 20 navy hoodies, size M, bulk discount requested</h2>
+
+    <div class="facts">
+      <h3>Ticket facts</h3>
+      <dl>
+        <dt>Request</dt><dd>20 navy hoodies (CC-HOOD-NAVY), size M, with a bulk discount requested by a student organization.</dd>
+        <dt>Stock</dt><dd>8 on hand (Aisle A), so 12 short.</dd>
+        <dt>Pricing</dt><dd>Cost $22.00, list $58.00. Margin at list is $36.00 per unit (62.07%).</dd>
+        <dt>Restock</dt><dd>Would come from vendor 1 (5-day lead time), which is blocked by the open invoice 501.</dd>
+        <dt>Restock cost</dt><dd>12 units at $22 is about $264, more than the $160 left after paying invoice 501 and the rent.</dd>
+      </dl>
+    </div>
+
+    <div class="expected">
+      <h3>Expected</h3>
+      <h4>Boss calls first, and why</h4>
+      <p><strong>Accounting.</strong> The core of the ticket is a price override, so the first question is how much discount keeps a safe margin above cost. Stock comes second.</p>
+
+      <h4>Delegations I expect</h4>
+      <p>Boss to Accounting, who checks pricing and margin at the requested price and checks cash. Then Boss to Inventory, who confirms 8 in stock and a shortfall of 12 and checks vendor 1's ship status (blocked by invoice 501). Then Boss to Customer Service to draft the reply with the Boss's decision. Facilities is not involved.</p>
+
+      <h4>MCP tools I expect this run to use</h4>
+      <p>
+        <code>get_ticket</code> <code>get_shop_date</code> <code>get_unit_pricing</code>
+        <code>get_cash_balance</code> <code>check_stock</code> <code>list_vendors</code>
+        <code>get_vendor_ship_status</code> <code>list_approvals</code> <code>save_customer_draft</code>
+      </p>
+
+      <h4>Expected end state</h4>
+      <p>A discount decision that stays above the $22 cost, a draft reply, and no purchase order, because vendor 1 can't ship while invoice 501 is unpaid. Restocking 12 units costs about $264, which doesn't fit in the cash left after paying invoice 501 and the rent ($160), so agents shouldn't queue a second payment for it.</p>
+    </div>
+
+    <div class="actual">
+      <h3>Actual</h3>
+      <p class="placeholder">To fill in after I run the agents.</p>
+      <h4>Who the Boss called first</h4><div class="blank"></div>
+      <h4>Delegations</h4><div class="blank"></div>
+      <h4>Tools used</h4><div class="blank"></div>
+      <h4>Outcome</h4><div class="blank"></div>
+      <h4>How it differed from my plan</h4><div class="blank"></div>
+    </div>
+  </section>
+
+  <!-- ===================== CASH ===================== -->
+  <section class="panel" role="tabpanel" id="panel-cash" aria-labelledby="tab-cash">
+    <h2>Cash</h2>
+    <p class="later">Coming later.</p>
+  </section>
+
+  <!-- ===================== REFLECTION ===================== -->
+  <section class="panel" role="tabpanel" id="panel-reflection" aria-labelledby="tab-reflection">
+    <h2>Reflection</h2>
+    <p class="later">Coming later.</p>
+  </section>
+</main>
+
+<footer>Plan only. Nothing on this page comes from running the agents.</footer>
+
+<script>
+  (function () {
+    var tabs = Array.prototype.slice.call(document.querySelectorAll('.tab'));
+    var panels = tabs.map(function (t) { return document.getElementById(t.getAttribute('aria-controls')); });
+
+    function show(index, focus) {
+      tabs.forEach(function (tab, i) {
+        var on = i === index;
+        tab.setAttribute('aria-selected', on ? 'true' : 'false');
+        tab.tabIndex = on ? 0 : -1;
+        panels[i].hidden = !on;
+      });
+      if (focus) tabs[index].focus();
+      try { history.replaceState(null, '', '#' + tabs[index].id.replace('tab-', '')); } catch (e) {}
+    }
+
+    tabs.forEach(function (tab, i) {
+      tab.addEventListener('click', function () { show(i, false); });
+      tab.addEventListener('keydown', function (e) {
+        var n = tabs.length, next = null;
+        if (e.key === 'ArrowRight') next = (i + 1) % n;
+        else if (e.key === 'ArrowLeft') next = (i - 1 + n) % n;
+        else if (e.key === 'Home') next = 0;
+        else if (e.key === 'End') next = n - 1;
+        if (next !== null) { e.preventDefault(); show(next, true); }
+      });
+    });
+
+    // Without JavaScript every panel stays visible; with it, one at a time.
+    document.documentElement.className += ' js';
+    var start = tabs.map(function (t) { return t.id.replace('tab-', ''); }).indexOf(location.hash.replace('#', ''));
+    show(start >= 0 ? start : 0, false);
+  })();
+</script>
+</body>
+</html>

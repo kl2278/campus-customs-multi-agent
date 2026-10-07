@@ -239,6 +239,52 @@ Follow-up on Problem 5: the one live Portkey call went through, but my print lin
 3. In AI_prompts.md under Problem 5, replace "Follow-up (if needed): None needed." with: "Follow-up (if needed): The first prompt allowed one live Portkey call, but the reply wasn't captured, so the connection to gpt-6-luna was never actually shown to work." Then log this message verbatim as the follow-up prompt, from "Follow-up on Problem 5" through item 3 (leave out this item 4 and item 5).
 ```
 
+## Problem 6: Plan the 3 tickets
+
+**Prompt:**
+
+```
+Problem 6 of my homework is to plan the 3 tickets before I wire the backend. In this problem I only write down what I EXPECT the team to do. Don't run any agents or tickets, don't start the MCP server against the working database, and don't open output/audit_trail.json. The plan must be written before I see any results.
+
+1. Create output/desk_tickets.html: one self-contained file I can double-click to open in a browser. No external scripts, fonts, images or network requests, just HTML, CSS and a little JavaScript. It has five tabs: "Ticket 101", "Ticket 102", "Ticket 103", "Cash" and "Reflection". Keep it clean, readable and printable, with a clear active-tab style, and make sure it works without a server and stays readable on a narrow window.
+
+2. Each ticket tab has these parts, in this order:
+   a. A short "Ticket facts" box with the facts that matter, checked read-only against data/campus_customs_new.db (mode=ro) and against output/harness.md. Don't include customer names or other personal details.
+   b. An "Expected" section with three labelled parts: "Boss calls first, and why", "Delegations I expect", and "MCP tools I expect this run to use". Use my wording from the plan below. You may fix grammar and format it as HTML, but don't add agents or tools I didn't list and don't change who is called first.
+   c. An empty "Actual" section with a clear placeholder ("To fill in after I run the agents") and blank sub-headings that mirror the Expected parts (who the Boss called first, delegations, tools used, outcome, and how it differed from my plan), so I can fill it in later without restructuring the page.
+
+3. The "Cash" and "Reflection" tabs are blank apart from a short "Coming later" note.
+
+MY PLAN (today on the desk is 2026-08-31, checking balance $3,400):
+
+TICKET 101: one white tee, size S, out of stock.
+Facts: stock is 0 in Aisle B. The tee is tied to invoice 501: $840 from vendor 1 (apparel reprint, 5-day lead time), due 2026-08-28, still open, so 3 days overdue.
+- Boss calls first: Inventory. Everything else depends on whether we can restock and who can ship, and Inventory is the agent that checks stock and vendors.
+- Delegations I expect: Boss to Inventory. Inventory finds the shortfall, picks vendor 1 by specialty (apparel reprint, since the database has no SKU-to-vendor link), and sees that vendor 1 can't ship because invoice 501 is open. Inventory (or Boss) then delegates to Accounting to queue the $840 payment for human approval. Boss then delegates to Customer Service to draft a status message for the customer. Facilities is not involved because nothing about the lease or space is touched.
+- MCP tools I expect: get_ticket, get_shop_date, check_stock, list_vendors, get_vendor_ship_status, get_invoice (or list_open_invoices), get_cash_balance, list_approvals, queue_payment_for_approval, save_customer_draft.
+- Expected end state: the payment is pending human approval. The agents can't approve it, so the purchase order can't be created until the payment is approved and executed. If it were created today, it would arrive 5 days after the shop date. The customer draft should say the restock is pending and should not promise a date as certain.
+
+TICKET 102: rent notice, rent due in 2 days.
+Facts: lease 1 is $2,400 a month, next due 2026-09-02, which is 2 days after today, so it is not overdue.
+- Boss calls first: Facilities. It is a lease question, and Facilities owns leases and rent timing.
+- Delegations I expect: Boss to Facilities, who confirms the notice against the lease and the shop date. Facilities (or Boss) then delegates to Accounting to check cash and queue the $2,400 rent payment for human approval. Inventory is not needed because no stock is involved. Customer Service is not needed because the notice comes from the landlord side and there is no customer to answer.
+- MCP tools I expect: get_ticket, get_shop_date, get_lease_rent_status, get_cash_balance, list_approvals, queue_payment_for_approval.
+- Expected end state: the rent payment is pending human approval. $3,400 covers $2,400, but paying both this and invoice 501 leaves $160.
+
+TICKET 103: 20 navy hoodies, size M, bulk discount requested.
+Facts: 8 on hand, so 12 short. Cost $22 and list $58, so the margin at list is $36 per unit (62.07%). Restocking would come from vendor 1, who is blocked by the open invoice 501.
+- Boss calls first: Accounting. The core of the ticket is a price override, so the first question is how much discount keeps a safe margin above cost. Stock comes second.
+- Delegations I expect: Boss to Accounting, who checks pricing and margin at the requested price and checks cash. Then Boss to Inventory, who confirms 8 in stock and a shortfall of 12 and checks vendor 1's ship status (blocked by invoice 501). Then Boss to Customer Service to draft the reply with the Boss's decision. Facilities is not involved.
+- MCP tools I expect: get_ticket, get_shop_date, get_unit_pricing, get_cash_balance, check_stock, list_vendors, get_vendor_ship_status, list_approvals, save_customer_draft.
+- Expected end state: a discount decision that stays above the $22 cost, a draft reply, and no purchase order, because vendor 1 can't ship while invoice 501 is unpaid. Restocking 12 units costs about $264, which doesn't fit in the cash left after paying invoice 501 and the rent ($160), so agents shouldn't queue a second payment for it.
+
+4. Verify the numbers: check every figure in the "Ticket facts" boxes and the plan (stock, dates, amounts, cost, list price, margin, lead time, cash balance) against the database read-only and tell me about any mismatch. Don't change my plan to fit what you find without telling me. Confirm the HTML has no external links, no customer personal details, and no model names. Confirm that every tool I listed exists in mcp_server/server.py, and tell me if any name doesn't.
+
+5. Scope: write only output/desk_tickets.html, plus the log and commit steps below. Don't change any code, don't touch either database, and don't run the agents.
+```
+
+**Follow-up (if needed):** None needed.
+
 ---
 
 ## Template for future problems
