@@ -90,7 +90,7 @@
 <body>
 <header>
   <h1>Campus Customs: Desk Tickets Plan</h1>
-  <p>My plan for the 3 open tickets, written before running any agents. Shop date: 2026-08-31. Checking balance: $3,400.</p>
+  <p>My plan for the 3 tickets, written before running any agents, with the real results filled in afterwards. Shop date: 2026-08-31. Starting checking balance: $3,400.</p>
 </header>
 
 <main>
@@ -277,11 +277,11 @@
     <h3>5. Three new problems it couldn't solve, and what I'd build</h3>
     <p><strong>Receiving stock.</strong> The team can create a purchase order and get it approved, but nothing marks it as arrived or raises inventory. Tee S is still at 0 even though PO 1 was approved. I'd add a receive_purchase_order tool that updates the inventory, and either a Receiving role or that tool given to Inventory with a human check.</p>
     <p><strong>Planning cash across everything that is pending.</strong> Approving a purchase order doesn't check cash, which is why I had to reject two $264 orders by hand while cash was $160. I'd add a forecast_cash tool that subtracts pending purchase orders and upcoming rent from the balance, and a Treasury or Planner agent that tells the Boss what is affordable before anything is queued.</p>
-    <p><strong>Talking to vendors and customers for real, and bringing money in.</strong> Drafts stay on the board and no revenue is modeled, so the team can't negotiate a payment plan with vendor 1 while invoice 501 was open, send the customer's reply, or record a sale at the $52 hoodie price. I'd add a send_message tool with mandatory human review, a record_sale and receivables tool, and a Sales or Outreach agent, all behind the same approval gate I use for payments.</p>
+    <p><strong>Talking to vendors and customers for real, and bringing money in.</strong> Drafts stay on the board and no revenue is modeled, so the team can't negotiate a payment plan with vendor 1 while invoice 501 is open, send the customer's reply, or record a sale at the $52 hoodie price. I'd add a send_message tool with mandatory human review, a record_sale and receivables tool, and a Sales or Outreach agent, all behind the same approval gate I use for payments.</p>
   </section>
 </main>
 
-<footer>Plan only. Nothing on this page comes from running the agents.</footer>
+<footer>The Expected sections were written before any agent ran and are unchanged. The Actual sections, the Cash tab and the Reflection come from the real runs.</footer>
 
 <script>
   (function () {
