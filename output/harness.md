@@ -130,6 +130,25 @@ Today on the desk is 2026-08-31. The checking account holds $3,400.00 and the pa
 
 **Cross-ticket cash pressure.** Paying invoice 501 ($840) and the rent ($2,400) leaves $160 from $3,400. That cannot cover the roughly $264 hoodie restock, so the agents must sequence or sign off on payments with the cash limit in mind. The pay tool must refuse anything that would drive the balance below zero.
 
+## MCP tools
+
+The MCP server (`mcp_server/server.py`) exposes three read-only tools over `data/campus_customs_new.db`. Each one is matched below to the open ticket it unlocks.
+
+### check_stock(sku, size, qty_needed=None)
+- **Reads:** `inventory`
+- **Unlocks:** ticket 101
+- **Why:** ticket 101 needs one CC-TEE-WHITE in size S, and this tool shows 0 on hand (Aisle B) and a shortfall of 1, which is what tells the agents a restock from vendor 1 is needed.
+
+### get_lease_rent_status(lease_id)
+- **Reads:** `leases` and `desk.date_today`
+- **Unlocks:** ticket 102
+- **Why:** ticket 102 says rent is due in 2 days, and this tool confirms lease 1 (Chapel Street shop, $2,400.00 due 2026-09-02) is 2 days out from 2026-08-31 and not overdue, so the notice can be checked against the database instead of the email.
+
+### get_unit_pricing(sku, proposed_price=None)
+- **Reads:** `pricing`
+- **Unlocks:** ticket 103
+- **Why:** ticket 103 wants a bulk discount on 20 CC-HOOD-NAVY, and this tool gives cost $22.00 and list $58.00 (a $36.00 margin, 62.07%), so any proposed price can be tested against cost before the Boss decides.
+
 ---
 
 ## Later sections (added by later problems)

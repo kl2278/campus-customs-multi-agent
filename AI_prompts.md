@@ -108,6 +108,31 @@ Problem 2 of my homework is to study the Campus Customs database and start a har
 
 **Follow-up (if needed):** None needed.
 
+## Problem 3: Build the MCP server
+
+**Prompt:**
+
+```
+Problem 3 of my homework is to build the MCP server. We're only writing it in this problem, not connecting or running it.
+
+1. Create mcp_server/ with a FastMCP server. The installed mcp package is a very new version, so check its docs or source for the correct FastMCP import before writing code. The server talks ONLY to data/campus_customs_new.db. Put that path in one config constant, resolved relative to the project root so it works from any working directory. Open the database in read-only mode, use parameterized SQL, and close connections properly. Never modify the original data/campus_customs.db.
+
+2. Write exactly these 3 tools, with clear names, type hints and docstrings that say when an agent should use them:
+   a. check_stock(sku, size, qty_needed=None): reads the inventory table. Returns the name, qty on hand and location for that SKU and size. If qty_needed is given, also return the shortfall (0 if there is enough stock).
+   b. get_lease_rent_status(lease_id): reads the leases table and desk.date_today. Returns the space, landlord, monthly rent, next due date, days until due (negative if overdue), and an is_overdue flag, all judged against desk.date_today and never the real date.
+   c. get_unit_pricing(sku, proposed_price=None): reads the pricing table. Returns unit_cost, list_price, and the margin per unit and margin percent at list price. If proposed_price is given, also return the margin per unit and margin percent at that price, and whether it is below cost.
+
+3. Rules for the tools: never invent data. If a SKU, size or lease isn't found, return a clear "not found" result and don't guess. Don't hard-code any ticket data, SKUs or numbers in the code. Every number must come from the database or from the arguments. The tools are read-only, so no writes and no payments yet.
+
+4. Update output/harness.md. Keep everything already in it, and add a new section "MCP tools" above the "Later sections" marker. For each of the 3 tools, include: the tool name, the table(s) it reads, which ticket it helps unlock (101, 102 or 103), and one sentence on why it is the right tool for that ticket. Tie each sentence to that ticket's actual facts from the database (for example the specific SKU, size, quantity, date or amount involved) and avoid vague lines like "reads inventory". Don't include customer personal details.
+
+5. Create a short mcp_server/README.md that says what the MCP server is for, which database file it uses, and lists the 3 tools with a one-line description each. Mention that more tools will be added in later problems.
+
+6. Don't start or connect the server. A syntax and import check is fine. You may call the underlying functions once directly to confirm they return correct data from campus_customs_new.db, and show me those results. Don't build FastAPI, agents or the dashboard yet. Don't touch the database contents, and make sure no AI model name appears anywhere in the new files.
+```
+
+**Follow-up (if needed):** None needed.
+
 ---
 
 ## Template for future problems
