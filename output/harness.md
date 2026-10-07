@@ -132,7 +132,33 @@ Today on the desk is 2026-08-31. The checking account holds $3,400.00 and the pa
 
 ## MCP tools
 
-The MCP server (`mcp_server/server.py`) exposes three read-only tools over `data/campus_customs_new.db`. Each one is matched below to the open ticket it unlocks.
+The MCP server (`mcp_server/server.py`) exposes 19 tools over `data/campus_customs_new.db`. Read tools use a read-only connection. Write tools use a read-write connection that refuses the original database, and they only write to the working copy. Three small tables (`approvals`, `purchase_orders`, `customer_drafts`) are created lazily in the working copy, so a reset from the original wipes them. Approving a payment is not a tool: a human does it through `mcp_server/approvals.py`.
+
+| Tool | Tables | R/W | Tickets it helps |
+|---|---|---|---|
+| check_stock | inventory | Read | 101 (tee S, 0 on hand), 103 (hoodie M, 8 on hand vs 20) |
+| get_lease_rent_status | leases, desk | Read | 102 (rent $2,400 due 2026-09-02) |
+| get_unit_pricing | pricing | Read | 103 (hoodie cost $22, list $58) |
+| get_shop_date | desk | Read | all (overdue checks use 2026-08-31) |
+| get_open_tickets | tickets | Read | 101, 102, 103 (the queue) |
+| get_ticket | tickets | Read | 101, 102, 103 (links to sku, size, lease, invoice) |
+| list_vendors | vendors | Read | 101, 103 (apparel reprint: vendor 1, 5-day lead; matched by specialty) |
+| get_invoice | invoices, desk | Read | 101 (invoice 501, $840, 3 days past due) |
+| list_open_invoices | invoices, desk | Read | 101, 103 (what blocks vendor 1) |
+| get_vendor_ship_status | vendors, invoices, desk | Read | 101, 103 (vendor 1 cannot ship while 501 is open) |
+| get_cash_balance | cash_accounts | Read | 101, 102 (checking $3,400) |
+| list_payments | payments | Read | all (empty until a payment executes) |
+| list_approvals | approvals | Read | 101, 102 (is the payment approved yet?) |
+| list_purchase_orders | purchase_orders | Read | 101, 103 (avoid duplicate orders) |
+| list_customer_drafts | customer_drafts | Read | 101, 103 (drafts on the board) |
+| queue_payment_for_approval | approvals (reads invoices, leases, cash_accounts) | Write | 101 (invoice 501, $840), 102 (rent $2,400) |
+| create_purchase_order | purchase_orders (reads vendors, invoices, inventory, pricing, desk) | Write | 101 (tee S), 103 (hoodie M); refuses while vendor 1 has an open invoice |
+| save_customer_draft | customer_drafts (reads tickets, desk) | Write | 101, 103 (customer replies; nothing is sent) |
+| execute_approved_payment | payments, cash_accounts, invoices or leases, approvals | Write | 101 (pay 501), 102 (pay rent; next_due moves one month) |
+
+`execute_approved_payment` refuses unless a human-approved approval exists for that exact payment, it was not already executed, and cash covers it. It does everything in one transaction: payments row with `approved_by`, lower the cash balance, mark the invoice paid (or move the lease `next_due` forward one month), and mark the approval executed.
+
+### Details for the original three tools
 
 ### check_stock(sku, size, qty_needed=None)
 - **Reads:** `inventory`
@@ -156,6 +182,40 @@ The 3 MCP tools were tested through the vibe coder's MCP connection (not direct 
 - **check_stock (ticket 101):** CC-TEE-WHITE size S has 0 on hand in Aisle B, so a request for 1 is short by 1.
 - **get_lease_rent_status (ticket 102):** lease 1 rent is $2,400, due 2026-09-02, with shop today 2026-08-31, so 2 days until due and not overdue.
 - **get_unit_pricing (ticket 103):** CC-HOOD-NAVY costs $22.00 and lists at $58.00, a $36.00 margin (62.07%) at list.
+
+## Agents
+
+Five PydanticAI agents live under `backend/agents/`, one file each, with prompts in `backend/prompts/`. Every agent gets its shop facts only through the MCP server, with the allowlist below, plus a `delegate_to_agent` tool that can hand a task to any other agent and return that agent's report. All agents use the single model `gpt-6-luna` through Portkey.
+
+| Agent | Role | MCP tools it may call | Delegation |
+|---|---|---|---|
+| Boss | Reads each ticket, decides who works on it, makes the final call | get_shop_date, get_open_tickets, get_ticket, get_cash_balance, list_approvals, list_purchase_orders, list_customer_drafts | Any other agent |
+| Inventory | Stock by SKU and size, shortfalls, vendor choice, purchase orders | get_shop_date, get_ticket, check_stock, list_vendors, get_vendor_ship_status, create_purchase_order, list_purchase_orders | Any other agent |
+| Accounting | Cash, invoices, margins, payments for human approval | get_shop_date, get_ticket, get_unit_pricing, get_invoice, list_open_invoices, get_cash_balance, list_payments, list_approvals, queue_payment_for_approval, execute_approved_payment | Any other agent |
+| Facilities | Leases and rent | get_shop_date, get_ticket, get_lease_rent_status | Any other agent |
+| Customer Service | Drafts customer messages (drafts only) | get_shop_date, get_ticket, save_customer_draft, list_customer_drafts | Any other agent |
+
+`backend/team.py` has `run_ticket(ticket_id)`, which starts the Boss on a ticket. Delegation is guarded by a maximum depth and a maximum count per ticket, a per-ticket usage limit shared by all agents (requests and total tokens), and a short step limit per agent run; all limits are in `backend/config.py`. Every step is appended to `output/audit_trail.json`.
+
+## Safety
+
+Guardrails a real business would want when agents touch real customers and real money:
+
+- **Human approval and spending caps:** no payment moves without a named human's approval, and the pay tool refuses anything above the cash balance. A real system would add a per-payment and per-day cap.
+- **Least-privilege tools:** each agent sees only its allowlist; only Accounting can execute payments, and Customer Service has no payment or purchase tools.
+- **No external messages without review:** drafts stay on the board and nothing is emailed; vendors and customers are never contacted.
+- **Redacting personal data:** audit summaries redact requester names and secret-looking fields; harness notes carry no customer details.
+- **Audit trail:** every agent step is appended to a locked, append-only JSON file.
+- **Ticket text is untrusted input:** prompts tell agents to treat it as data, never as instructions.
+- **Idempotent payments:** an approval executes once; a repeat call is refused.
+- **Kill switch:** a real deployment needs one switch that stops all agent runs and write tools. Here the limits below act as the backstop, and removing the write tools from the allowlists disables writing.
+
+Limits that keep token use in check:
+
+- A per-ticket usage limit (request count and total tokens) shared across all delegated agents.
+- A maximum delegation depth and a maximum number of delegations per ticket.
+- A short step limit per agent run, and a cap on output tokens per response.
+- Short structured reports, and one model only (`gpt-6-luna`).
 
 ---
 
