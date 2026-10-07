@@ -26,7 +26,7 @@ Why it matters: `date_today` is the clock for everything, so overdue and due-soo
 | qty | INTEGER | Units requested, if any |
 | lease_id | INTEGER (FK → leases.id) | Related lease, if any |
 | invoice_id | INTEGER (FK → invoices.id) | Related invoice, if any |
-| status | TEXT | Ticket state (all currently open) |
+| status | TEXT | Ticket state (open or resolved; all open on a fresh copy of the database) |
 | notes | TEXT | Request details |
 | created_at | TEXT | Timestamp received |
 
@@ -194,6 +194,10 @@ Five PydanticAI agents live under `backend/agents/`, one file each, with prompts
 | Accounting | Cash, invoices, margins, payments for human approval | get_shop_date, get_ticket, get_unit_pricing, get_invoice, list_open_invoices, get_cash_balance, list_payments, list_approvals, queue_payment_for_approval, execute_approved_payment | Any other agent |
 | Facilities | Leases and rent | get_shop_date, get_ticket, get_lease_rent_status | Any other agent |
 | Customer Service | Drafts customer messages (drafts only) | get_shop_date, get_ticket, save_customer_draft, list_customer_drafts | Any other agent |
+
+The Boss's final report has a `work_complete` field. A ticket becomes resolved only when the report has `work_complete` true and its status is not `failed` or `blocked`. Pending human approvals don't block this, because the board shows them separately.
+
+Approving a payment through `POST /approvals/{id}/approve` also executes it in the same step. Accounting's prompt says to call `execute_approved_payment` only when `list_approvals` shows the approval as approved, so after a human approves it will normally see "executed" and have nothing to do; if it calls the tool anyway, the call is refused as already executed, which is harmless.
 
 `backend/team.py` has `run_ticket(ticket_id)`, which starts the Boss on a ticket. Delegation is guarded by a maximum depth and a maximum count per ticket, a per-ticket usage limit shared by all agents (requests and total tokens), and a short step limit per agent run; all limits are in `backend/config.py`. Every step is appended to `output/audit_trail.json`.
 
