@@ -429,6 +429,22 @@ Follow-up on Problem 9: the second run on ticket 101 produced customer draft 2, 
 3. Don't change any other prompt, code file or frontend file. Rerun the stand-in agent tests (delegation, audit growth, ping-pong depth limit) and confirm the Customer Service agent still builds, and confirm the prompt file loads. Make no live model calls. Confirm gpt-6-luna is still the only model name in the repo apart from the quoted gateway deployment name in AI_prompts.md, that the original database checksum still starts 23686a90, and that .env, node_modules, the working database and the audit file are not staged.
 ```
 
+**Fourth follow-up (if needed):** Ticket 103 stayed open because the Boss prompt told it to hand discount decisions to a human, and Inventory recreated a purchase order after I rejected one, so the prompts needed clearer rules.
+
+**Fourth follow-up prompt:**
+
+```
+Follow-up on Problem 9: ticket 103 stayed open after two runs. The Boss deferred the discount decision to a human even though it had the cost, list price and margin, and Inventory recreated a purchase order after I rejected one. Don't run any ticket and don't call POST /tickets/{id}/run, /approve, /reject or /reset. Don't change the limits, don't touch either database, and don't edit or delete output/audit_trail.json.
+
+1. Apply the changes to backend/prompts/boss.md exactly as you proposed: the revised "Escalating to the human" sentence, the new "Discount and price requests" section, and the new work_complete sentence under Output.
+
+2. Add one sentence to the Boss prompt, in the delegation area: when a ticket needs a reply to a customer, hand the draft to Customer Service, and give it only the facts it may share (never dates, purchase orders, approvals, payments, vendors or cash). Keep it general.
+
+3. Apply your Inventory change exactly as proposed: a rejected purchase order is a final human decision; check list_purchase_orders first and don't create another for the same ticket unless the human asks.
+
+4. Edit only boss.md and inventory.md. Keep both prompts general, with no ticket-specific numbers, names or dates. Rerun the stand-in agent tests (delegation, audit growth, ping-pong depth limit), confirm all five agents still build and the prompt files load, and make no live model calls. Confirm gpt-6-luna is the only model name in the repo apart from the quoted gateway deployment name in AI_prompts.md, that the original database checksum still starts 23686a90, and that .env, node_modules, the working database and the audit file are not staged.
+```
+
 ---
 
 ## Template for future problems
