@@ -538,3 +538,19 @@ Problem 11 of my homework is to submit the project to a public GitHub repo. Stag
 
 8. Checks before committing. Search everything that will be committed for secrets by pattern only (key-like strings, bearer tokens, x-portkey-api-key with a value), and don't read values from .env. Confirm .env is neither tracked nor staged. Search all files to be committed, and the entire git history (git log -p across all commits), for any requester name or approver name without printing the names. If a name is in history, stop and tell me, because nothing is pushed yet and the history can still be rewritten. Search tracked files for absolute paths such as /Users/. Confirm gpt-6-luna is the only model name in files to be committed, apart from the quoted gateway deployment name in AI_prompts.md and the audit files, and report anything else instead of editing it. Tell me whether the commit author email is a personal address or a noreply address, without changing it. Confirm node_modules, .venv, dist and the raw audit file are not tracked. Show the total size of the repo and any file over 5 MB.
 ```
+
+**Prompt (stage 2 of 2):**
+
+```
+Stage 2 of Problem 11: I reviewed stage 1 and I'm ready to push. Don't run any ticket, don't call any POST route, don't spend tokens, and don't edit any file in the project except for the log step below.
+
+1. Confirm the working tree is clean and the last commit is the stage 1 commit, and that no remote exists yet. Then add my repo URL (the one in output/github_url.txt) as origin and push the main branch with git push -u origin main. Use only my existing git credentials. Never ask for, print or store a token or password. If the push fails because of authentication, stop and give me the exact command to run myself in my terminal.
+
+2. After the push, verify from a fresh clone of the GitHub repo in /tmp (outside the project): the tracked files match the expected layout, there is no .env, both database files are present, the original database checksum starts with 23686a90 and matches my local file, the working database reads a checking balance of 160 and all three tickets resolved, and output/github_url.txt matches the repo URL.
+
+3. In the fresh clone, build it as a grader would: create a new venv in /tmp and run pip install -r requirements.txt, then pip check and confirm mcp is 1.30.0; run npm ci and npm run build in frontend/. Then start the backend from the clone's backend folder with the database and audit-path environment overrides pointing at temporary copies in /tmp, so the clone's own files aren't modified. Call GET /tickets, GET /cash and GET /events with curl, then stop the server and confirm nothing is left on port 8000. No POST routes and no model calls.
+
+4. Run the secret, name and model-name scans again on the fresh clone (patterns only, without printing names) and tell me the results. Tell me the repo's total size.
+```
+
+**Follow-up (if needed):** None needed.
