@@ -3,9 +3,10 @@
 __pycache__/
 node_modules/
 .DS_Store
-data/campus_customs_new.db
 *.lock
 dist/
 *.tsbuildinfo
-# Raw audit trail may contain requester names from the course data; export a redacted copy instead
-output/audit_trail.json
+# Raw audit trail may contain requester names from the course data; the committed output/audit_trail.json is a redacted copy
+output/audit_trail.raw.json
+data/*.db-wal
+data/*.db-shm

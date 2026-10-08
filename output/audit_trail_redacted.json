@@ -1,5 +1,5 @@
 {
-  "note": "Redacted export of the raw audit trail (output/audit_trail.json), which is kept out of git because it can contain names. Events are those since the last reset marker plus that marker. Customer names (taken from the tickets table) and greeting lines are replaced with [customer]; approver names are replaced with initials. Nothing else is altered.",
+  "note": "Redacted export of the raw audit trail, which is kept locally as audit_trail.raw.json and is ignored by git because it can contain names. Events are those since the last reset marker plus that marker. Customer names (taken from the tickets table) and greeting lines are replaced with [customer]; approver names are replaced with initials. Nothing else is altered.",
   "events": [
     {
       "timestamp": "2026-10-07T13:19:51.315683+00:00",

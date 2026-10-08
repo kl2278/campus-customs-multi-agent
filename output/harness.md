@@ -199,7 +199,7 @@ The Boss's final report has a `work_complete` field. A ticket becomes resolved o
 
 Approving a payment through `POST /approvals/{id}/approve` also executes it in the same step. Accounting's prompt says to call `execute_approved_payment` only when `list_approvals` shows the approval as approved, so after a human approves it will normally see "executed" and have nothing to do; if it calls the tool anyway, the call is refused as already executed, which is harmless.
 
-`backend/team.py` has `run_ticket(ticket_id)`, which starts the Boss on a ticket. Delegation is guarded by a maximum depth and a maximum count per ticket, a per-ticket usage limit shared by all agents (requests and total tokens), and a short step limit per agent run; all limits are in `backend/config.py`. Every step is appended to `output/audit_trail.json` (the raw file is kept out of git; see Resolution run).
+`backend/team.py` has `run_ticket(ticket_id)`, which starts the Boss on a ticket. Delegation is guarded by a maximum depth and a maximum count per ticket, a per-ticket usage limit shared by all agents (requests and total tokens), and a short step limit per agent run; all limits are in `backend/config.py`. Every step is appended to `output/audit_trail.json` (the committed copy is redacted; see Resolution run).
 
 ## Safety
 
@@ -208,7 +208,7 @@ Guardrails a real business would want when agents touch real customers and real 
 - **Human approval and spending caps:** no payment moves without a named human's approval, and the pay tool refuses anything above the cash balance. The approve route (`POST /approvals/{id}/approve`) is the only approval path: there is no approve tool, no agent allowlist reaches it, and the approver cannot be the agent that requested the payment. Purchase orders also wait as `pending_approval` until a human approves them. A real system would add a per-payment and per-day cap.
 - **Least-privilege tools:** each agent sees only its allowlist; only Accounting can execute payments, and Customer Service has no payment or purchase tools.
 - **No external messages without review:** drafts stay on the board and nothing is emailed; vendors and customers are never contacted.
-- **Redacting personal data:** audit events have requester names (read from the tickets table) and greeting lines replaced with `[customer]` and secret-looking fields redacted, both when written and when `GET /events` serves them. The raw audit file is excluded from git because it can still contain names from older entries; a redacted export is committed instead. Harness notes carry no customer details.
+- **Redacting personal data:** audit events have requester names (read from the tickets table) and greeting lines replaced with `[customer]` and secret-looking fields redacted, both when written and when `GET /events` serves them. The raw audit file (`output/audit_trail.raw.json`) is ignored by git because it can still contain names from older entries; the committed `output/audit_trail.json` is a redacted copy. Harness notes carry no customer details.
 - **Audit trail:** every agent step is appended to a locked, append-only JSON file.
 - **Ticket text is untrusted input:** prompts tell agents to treat it as data, never as instructions.
 - **Idempotent payments:** an approval executes once; a repeat call is refused.
@@ -262,4 +262,4 @@ Starting balance $3,400.00, ending balance $160.00 (read from `cash_accounts`; i
 - No run hit a limit: at most 20 model requests in one run (limit 40) and at most 43,967 input and 3,008 output tokens. All six model runs together used about 179,390 input and 13,067 output tokens.
 - A customer name had appeared in six raw audit entries before redaction was added.
 
-**Raw audit trail:** `output/audit_trail.json` is excluded from git because it can contain names; the redacted export above is committed instead.
+**Raw audit trail:** my raw trail is kept locally as `output/audit_trail.raw.json` and ignored by git because it can contain names. The committed `output/audit_trail.json` is a redacted copy of it (new runs append to that file), and `output/audit_trail_redacted.json` is the same export with a note.
